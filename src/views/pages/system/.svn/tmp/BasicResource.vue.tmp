@@ -1,0 +1,419 @@
+<template>
+	<div>
+		<!--搜索工具条-->
+		<el-col :span="24" class="toolbar">
+			<el-form :inline="true" :model="filters">
+<<<<<<< .mine
+				<el-form-item>
+					<el-select v-model="filters.level" placeholder="请选择资源层级" multiple>
+					   <el-option
+					      v-for="item in levelOptions"
+					      :key="item.index"
+					      :label="item.value"
+					      :value="item.index">
+					    </el-option>
+					   </el-select>
+				</el-form-item>
+=======
+>>>>>>> .r125
+				<el-form-item>
+					<el-input v-model="filters.parentId" placeholder="上级资源"></el-input>
+				</el-form-item>
+				<el-form-item>
+<<<<<<< .mine
+					<el-input v-model="filters.resourceCode" placeholder="资源代码"></el-input>
+				</el-form-item>
+					<el-form-item>
+					<el-input v-model="filters.resourceName" placeholder="资源名称"></el-input>
+				</el-form-item>
+				<el-form-item>
+=======
+>>>>>>> .r125
+<<<<<<< .mine
+					<el-button type="primary" v-on:click="getBasicResource">查询</el-button>
+=======
+					<el-select v-model="filters.level" multiple collapse-tags placeholder="请选择">
+			           <el-option v-for="item in useStatusOptions" :key="item.index" :label="item.value" :value="item.key"></el-option>
+					 </el-select>
+  				</el-form-item>
+				<el-form-item>
+					<el-button type="primary" v-on:click="getBaseInfo">查询</el-button>
+>>>>>>> .r125
+				</el-form-item>
+				<el-form-item>
+					<el-button type="primary" @click="handleAdd">新增</el-button>
+				</el-form-item>
+			</el-form>
+		</el-col>
+		<!--列表-->
+		<el-table :data="basicresource" highlight-current-row v-loading="listLoading" @sort-change="sortChange" style="width: 100%;" >
+			<el-table-column type="selection" width="55">
+			</el-table-column>
+				<el-table-column prop="level" label="资源层级" width="120" sortable :formatter="formatLevel">
+			</el-table-column>
+			<el-table-column prop="parentId" label="上级资源"  width="180" sortable>
+			</el-table-column>
+			<el-table-column prop="resourceCode" label="资源代码 " width="180"  sortable>
+			</el-table-column>
+			<el-table-column prop="resourceName" label="资源名称" min-width="180" sortable   >
+			</el-table-column>
+		
+			<el-table-column label="操作" width="150">
+				<template slot-scope="scope">
+					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+					<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+				</template>
+			</el-table-column>
+		</el-table>
+
+		<!--分页工具条-->
+		<!--分页工具条-->
+		<el-col :span="24" class="toolbar">
+			<el-pagination  @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="pager.currentPage" :page-sizes="pagerSizes"  :page-size="pager.pageSize" layout="total, sizes, prev, pager, next, jumper" :total="total" style="float:right;" >
+			</el-pagination>
+		</el-col>
+		<!--编辑界面-->
+		<el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false">
+			<el-form :model="editForm" label-width="120px" :rules="addFormRules" ref="editForm">
+				<el-form-item label="资源层级" >
+					<el-select v-model="editForm.level" placeholder="请选择">
+					   <el-option
+					      v-for="item in levelOptions"
+					      :key="item.index"
+					      :label="item.key"
+					      :value="item.value">
+					    </el-option>
+					   </el-select>
+				</el-form-item>
+				<el-form-item label="上级资源" >
+					<el-input type="text" placeholder="资源名称 " v-model="editForm.parentId" > </el-input>
+				</el-form-item>
+			 <el-form-item label="资源代码" prop="resourceCode">
+			 	 <el-input type="text" placeholder="资源名称 " v-model="editForm.resourceCode" > </el-input>
+				</el-form-item>
+				<el-form-item label="资源名称 " prop="resourceName">
+					<el-input type="text" placeholder="资源名称 " v-model="editForm.resourceName" > </el-input>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click.native="editFormVisible = false">取消</el-button>
+				<el-button type="primary" @click.native="editSubmit" :loading="editLoading">提交</el-button>
+			</div>
+		</el-dialog>
+
+		<!--新增界面-->
+		<el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false">
+			<el-form :model="addForm" label-width="120px" :rules="addFormRules" ref="addForm">
+				<el-form-item label="资源层级" prop="level">
+					<el-select v-model="addForm.level" placeholder="请选择">
+					   <el-option v-for="item in levelOptions"
+					      :key="item.index"
+					      :label="item.key"
+					      :value="item.value">
+					    </el-option>
+					   </el-select>
+				</el-form-item>
+				<el-form-item label="上级资源" prop="parentId">
+					<el-input type="text" placeholder="资源名称 " v-model="editForm.parentId" > </el-input>
+				</el-form-item>
+				<el-form-item label="资源代码" prop="resourceCode">
+					 <el-input v-model="addForm.resourceCode" auto-complete="off"></el-input>
+				</el-form-item>
+				</el-form-item>
+				<el-form-item label="资源名称 "  prop="resourceName">
+					<el-input type="text" placeholder="资源名称 " v-model="addForm.resourceName" > </el-input>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click.native="addFormVisible = false">取消</el-button>
+				<el-button type="primary" @click.native="addSubmit" :loading="addLoading">提交</el-button>
+			</div>
+		</el-dialog>
+
+	</div>
+</template>
+<script>
+import {pager,pagerSizes} from '@/base/baseParam'
+	export default {
+		data() {
+			return {
+				//搜索
+				filters:{
+					level: '',
+					parentId:'',
+					statusEnum:[],
+				},
+				groupOptions:[],
+				levelOptions:[],
+				basicresource: [],
+				total: 0,
+<<<<<<< .mine
+				pager:pager,
+				pagerSizes:pagerSizes,
+=======
+				currentPage:"",
+				pager: {"currentPage": 1,
+						    "pageSize": 10,
+						    "sortName": "id",
+						    "sortType": "desc"
+						  },
+
+>>>>>>> .r125
+				listLoading: false,
+				sels: [],//列表选中列
+				editFormVisible: false,//编辑界面是否显示
+				editLoading: false,
+				//编辑界面数据
+				editForm: {
+					id: 0,
+					level:'',
+<<<<<<< .mine
+					parentId: '',
+					groupId:0,
+					shortName:'',
+					status:''
+=======
+          			parentId: 0,
+
+
+>>>>>>> .r125
+				},
+				addFormVisible: false,//新增界面是否显示
+				addLoading: false,
+				//新增-编辑界面验证
+				addFormRules: {
+					level: [
+						{ required: true, message: '请选择层级', trigger: 'blur' }
+					],
+					parentId: [
+						{ required: true, message: '请选择上级资源', trigger: 'blur' }
+					],
+					resourceCode: [
+						{ required: true, message: '请输入资源代码', trigger: 'blur' }
+					],
+					resourceName: [
+						{ required: true, message: '请输入资源名称', trigger: 'blur' }
+					]
+				},
+				//新增界面数据
+				addForm: {
+					level:'',
+					parentId: '',
+					groupId:0,
+					shortName:'',
+				}
+			}
+		},
+		methods: {
+			//状态显示转换
+<<<<<<< .mine
+			formatLevel: function (row, column) {
+				for(var i = 0 ;i < this.levelOptions.length;i++){
+					if(this.levelOptions[i].index == row.level){
+						return this.levelOptions[i].key;
+=======
+			formatStatus: function (row, column) {
+			for(var i = 0 ;i < this.useStatusOptions.length;i++){
+				alert(i)
+					if(this.useStatusOptions[i].key == row.useStatus){
+						return this.useStatusOptions[i].value;
+>>>>>>> .r125
+					}
+				}
+			},
+			formatGroupId(row,column){
+				for(var i = 0 ;i < this.groupOptions.length;i++){
+					if(this.groupOptions[i].id == row.groupId){
+						return this.groupOptions[i].groupName;
+					}
+				}
+			},
+			handleSizeChange(val) {
+				this.pager.pageSize = val;
+				this.getBaseInfo();
+			},
+			handleCurrentChange(val) {
+				this.pager.currentPage = val;
+				this.getBasicResource();
+			},
+			
+			//获取层级
+			getLevel(){
+					this.$axios({
+					    method: 'get',
+					    url:'/system/basicresource/levelenum',
+					}).then((res)=>{
+						this.levelOptions = res;
+						this.listLoading = false;
+					});
+			},
+			//排序
+				sortChange(column){
+					column.order == 'ascending' ? column.order='asc' :column.order='desc';
+					this.pager.sortType=column.order;
+					this.pager.sortName=column.prop;
+					this.getBaseInfo();
+				},
+			//获取资源列表
+			getBasicResource() {
+				let para = {
+					pager: this.pager,
+<<<<<<< .mine
+					levelEnum:this.filters.level,
+					parentId:this.filters.parentId,
+					resourceCode: this.filters.resourceCode,
+					resourceName: this.filters.resourceName
+=======
+					 id: this.filters.id,
+>>>>>>> .r125
+				};
+<<<<<<< .mine
+				this.listLoading = true;
+=======
+        this.listLoading = true;
+>>>>>>> .r125
+					this.$axios({
+					    method: 'post',
+					    url:'/system/basicresource/page',
+					    data:para,
+					}).then((res)=>{
+						this.total = res.totalRows;
+						this.basicresource = res.rows;
+						this.listLoading = false;
+					});
+			},
+<<<<<<< .mine
+=======
+			//获取状态
+			getUseStatus(){
+					this.$axios({
+					    method: 'get',
+					    url:'/system/basicresource/levelenum',
+					}).then((res)=>{
+						for (let index = 0; index < res.length; index++) {
+							res[index].value = index + 1;
+							
+						}
+						this.useStatusOptions = res;
+						this.listLoading = false;
+					});
+			},
+>>>>>>> .r125
+			//删除
+			handleDel(index, row){
+				this.$confirm('确认删除该记录吗?', '提示', {
+					type: 'warning'
+				}).then(() => {
+					this.listLoading = true;
+						this.$axios({
+								    method: 'DELETE',
+								    url:'/system/basicresource/delete/'+row.id,
+								}).then((res)=>{
+										this.$message({
+										message: '删除成功',
+										type: 'success'
+										});
+									this.getBasicResource();
+								})
+							}).catch(() => {
+							});
+			},
+			//显示编辑界面
+			handleEdit(index, row) {
+				this.editFormVisible = true;
+<<<<<<< .mine
+				this.$axios({
+						    method: 'post',
+						    url:'/system/basicresource/get/'+row.id,
+						}).then((res)=>{
+							this.editForm = Object.assign({},res);
+				});
+=======
+				console.log(index)
+				console.log(row.id)
+				this.$axios({
+						method: 'post',
+						url:'/system/basicresource/get/'+row.id,
+						}).then((res)=>{		
+						this.editForm = Object.assign({}, res);			
+						}).catch(() => {});
+				
+>>>>>>> .r125
+			},
+			//显示新增界面
+			handleAdd () {
+				this.addFormVisible = true;
+				this.addForm = {
+				   level:'',
+					parentId: '',
+					shortName:'',
+				};
+			},
+			//编辑
+			editSubmit () {
+				this.$refs.editForm.validate((valid) => {
+					if (valid) {
+						this.$confirm('确认提交吗？', '提示', {}).then(() => {
+							this.editLoading = true;
+							console.log(this.editForm)
+							let para = Object.assign({}, this.editForm);
+							let id=para.id;
+							this.$axios({
+							    method: 'PUT',
+							    url:'/system/basicresource/update/'+id,
+							    data:para,
+							}).then((res)=>{
+							this.basicresource = res.rows;
+							this.editLoading = false;
+							this.$message({
+									message: '提交成功',
+									type: 'success'
+								});
+								this.$refs['editForm'].resetFields();
+								this.editFormVisible = false;
+								this.getBasicResource();
+							});
+						});
+					}
+				});
+			},
+			//新增
+			addSubmit() {
+				this.$refs.addForm.validate((valid) => {
+					if (valid) {
+						this.$confirm('确认提交吗？', '提示', {}).then(() => {
+							this.addLoading = true;
+							let para = Object.assign({}, this.addForm);
+								this.$axios({
+							    method: 'PUT',
+							    url:'/system/basicresource/add',
+							    data:para,
+								}).then((res)=>{
+								this.basicresource = res.rows;
+								this.listLoading = false;
+								this.$message({
+										message: '提交成功',
+										type: 'success'
+									});
+									this.$refs['addForm'].resetFields();
+									this.addFormVisible = false;
+									this.getBasicResource();
+							});
+						});
+					}
+				});
+			},
+			selsChange (sels) {
+				this.sels = sels;
+			},
+		},
+		mounted() {
+			this.getLevel()
+			this.getBasicResource();
+		}
+	}
+
+</script>
+
+<style >
+</style>
