@@ -8,6 +8,7 @@
 	 	<el-menu-item   v-for="(child,index) in item.children" :index="child.path" :key="child.index" > {{child.name}}</el-menu-item>
 	  </el-submenu>
 </el-menu>
+
 </template>
 
 <script>
@@ -30,7 +31,9 @@
       		},
 	      handleClose(key, keyPath) {
 	      // this.refs['menu'].style.width="60px"
-	      }
+	      },
+	      handleselect: function (a, b) {
+				},
 	    }
   }
 </script>

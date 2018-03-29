@@ -14,12 +14,12 @@
 				</el-form-item>
 					</el-col>
 					<el-col :md='8' :lg="3">
-				<el-form-item >
-					<el-select v-model="filters.useStatus" multiple collapse-tags placeholder="请选择">
-			           <el-option v-for="item in useStatus" :key="item.key" :label="item.value":value="item.key">
-			           </el-option>
-					 </el-select>
-  				</el-form-item>
+					<el-form-item >
+						<el-select v-model="filters.useStatus" multiple collapse-tags placeholder="请选择状态">
+				           <el-option v-for="item in useStatus" :key="item.key" :label="item.value":value="item.key">
+				           </el-option>
+						 </el-select>
+	  				</el-form-item>
   				</el-col>
 					<el-col :md='12' :lg="6">
 						<el-form-item > 
@@ -42,17 +42,19 @@
 		<!--按钮组-->
 			<el-col :span="24" class="toolbar">	
 				<el-button type="primary" @click="handleAdd"  >新增</el-button>
-			<el-button   @click="handleQx">分配权限</el-button>
-			<el-button  type='success' @click="handleAudit">启/停用</el-button>
+			
 			</el-col>
 		<!--列表-->
-		<el-table :data="groupbase" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" @sort-change="sortChange">
+		<el-table :data="groupbase"  ref="table" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" @sort-change="sortChange">
 			<el-table-column type="selection" width="55">
 			</el-table-column>
-				<el-table-column label="操作" width="280">
+				<el-table-column label="操作" width="350">
 				<template slot-scope="scope">
 					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-					<el-button type="warning" size="small" @click="handleDel(scope.$index, scope.row)" v-show="scope.row.useStatus=='newly'">删除</el-button>
+				   <el-button   size="small" @click="handleQx(scope.$index,scope.row)">分配权限</el-button>
+					<el-button  type="danger" size="small" @click="handleDel(scope.$index, scope.row)" v-show="scope.row.useStatus=='newly'">删除</el-button>
+				   <el-button    size="small" type='warning' @click="handleAudit(scope.$index,scope.row)" v-if="scope.row.useStatus === 'normal'">停用</el-button>
+					<el-button   size="small" type='success' @click="handleAudit(scope.$index,scope.row)" v-else>启用</el-button>
 				</template>
 			</el-table-column>
 			<el-table-column prop="groupCode" label="集团编号" width="120" sortable="custom">
@@ -111,7 +113,7 @@
 			</div>
 		</el-dialog>
 		<!--分配权限-->
-		<el-dialog title="分配权限" :visible.sync="treeVisible" :close-on-click-modal="false">
+		<el-dialog title="分配权限" :visible.sync="treeVisible" :close-on-click-modal="false" :lock-scroll="true">
 			<el-input placeholder="输入关键字进行过滤" v-model="filterText" class="mb10"></el-input>
 			<el-tree ref="tree"  :data="trees" show-checkbox     :props="defaultProps"  node-key="id"  :filter-node-method="filterNode" :default-expanded-keys="expandedKeys">
 			</el-tree>
@@ -124,7 +126,6 @@
 	</div>
 </template>
 <script>
-	import {pager,pagerSizes} from '@/base/baseParam'
 	export default {
 		data() {
 			return {
@@ -152,8 +153,8 @@
 				trees:[],
 				total: 0,
 				updateId:'',
-				pager:pager,
-				pagerSizes:pagerSizes,
+				pager:this.global_.pager,
+				pagerSizes:this.global_.pagerSizes,
 				listLoading: false,
 				sels: [],//列表选中列
 				editFormVisible: false,//编辑界面是否显示
@@ -199,7 +200,6 @@
 	        this.$refs.tree.filter(val);
 	      }
 	    },
-	    
 		methods: {
 			//权限树过滤
 			   filterNode(value, data) {
@@ -244,7 +244,7 @@
 					this.$axios({
 					    method: 'post',
 					    url:'/group/groupbase/page',
-					    params:pager,
+					    params:this.pager,
 					    data:para
 					}).then((res)=>{
 						this.total = res.totalRows;
@@ -281,14 +281,14 @@
 							})
 			},
 			//停用
-			handleAudit(){
+			handleAudit(index, row){
 				this.$confirm('确认停用该记录吗?', '提示', {
 					type: 'warning'
 				}).then(() => {
 					this.listLoading = true;
 						this.$axios({
 								    method: 'post',
-								    url:'/group/groupbase/audit/'+this.sels[0].id,
+								    url:'/group/groupbase/audit/'+row.id,
 								}).then((res)=>{
 										this.$message({
 										message: '停用成功',
@@ -320,23 +320,21 @@
 					groupName: ''
 				};
 			},
-			handleQx(){
-				console.log(this.sels)
+			handleQx(index, row){
 				this.treeVisible = true;
-				this.choosegroupId=this.sels[0].id;
+				this.choosegroupId=row.id
 				    var tempfirst=[],tmepsecond=[],tmepthird=[],secondchildren=[];
 	     			this.$axios({
 							    method: 'post',
-							    url:'/system/basicresource/group/list/'+this.choosegroupId,
+							    url:'/group/groupbase/resource/'+row.id,
 								}).then((res)=>{
 									//第一层
 								 for (let i=0;i<res.length;i++){
-								 	if(res[i].flag!=undefined){
+								 	if(res[i].checked=="true"){
 								 		this.defaultKeys.push(res[i].id);
 								 	}
 				          			if( res[i].level=="first"){
 				          				 tempfirst.push({"id":res[i].id,"label":res[i].name,children: []});
-				          				 this.expandedKeys.push(res[i].id)
 				          			}
 				          			else if(res[i].level=="second"){
 				          		       tmepsecond.push(res[i])
@@ -369,8 +367,6 @@
 									}
 							this.trees=tempfirst;
 							this.setCheckedKeys(this.defaultKeys);
-							
-							
 					});
 			},
 			//设置权限选中
@@ -441,7 +437,7 @@
 		      	}
 	     		this.$axios({
 							    method: 'post',
-							    url:'/system/basicresource/group/update/'+this.choosegroupId,
+							    url:'/group/groupbase/group/update/'+this.choosegroupId,
 							    data:resourceIds
 								}).then((res)=>{
 								this.$message({
@@ -449,8 +445,9 @@
 										type: 'success'
 								});
 								this.treeVisible = false;
+								
 				});
-				
+				this.$refs.table.clearSelection();
 	     	},
 		},
 		mounted() {

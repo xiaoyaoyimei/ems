@@ -3,9 +3,15 @@ svn:wc:ra_dav:version-url
 V 40
 /svn/b2c/!svn/ver/154/dms-html/src/views
 END
+404.vue
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/b2c/!svn/ver/186/dms-html/src/views/404.vue
+END
 Login.vue
 K 25
 svn:wc:ra_dav:version-url
 V 50
-/svn/b2c/!svn/ver/106/dms-html/src/views/Login.vue
+/svn/b2c/!svn/ver/244/dms-html/src/views/Login.vue
 END

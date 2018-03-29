@@ -3,28 +3,17 @@
 		<!--搜索工具条-->
 		<el-col :span="24" class="toolbar">
 			<el-form :inline="true" :model="filters">
-				 <el-col :md='6' :lg="4">
+				 <el-col :md='8' :lg="3">
 				<el-form-item >
 					<el-input v-model="filters.groupCode" placeholder="集团编号"></el-input>
 				</el-form-item>
 				</el-col>
-				 <el-col :md='6' :lg="4">
+				 <el-col :md='8' :lg="3">
 				<el-form-item > 
 					<el-input v-model="filters.groupName" placeholder="集团名称"></el-input>
 				</el-form-item>
 					</el-col>
-					<el-col><el-form-item > 
-						<el-date-picker v-model="filters.searchCreateTimeStart"
-      type="daterange"
-      align="right"
-      unlink-panels
-      range-separator="至"
-      start-placeholder="创建开始日期"
-      end-placeholder="创建结束日期"
-      :picker-options="pickerOptions2">
-    </el-date-picker>
-				</el-form-item></el-col>
-				<el-col :md='6' :lg="4">
+					<el-col :md='8' :lg="3">
 				<el-form-item >
 					<el-select v-model="filters.useStatus" multiple collapse-tags placeholder="请选择">
 			           <el-option v-for="item in useStatus" :key="item.key" :label="item.value":value="item.key">
@@ -32,23 +21,40 @@
 					 </el-select>
   				</el-form-item>
   				</el-col>
-  				<el-col :md='6' :lg="4">
+					<el-col :md='12' :lg="6">
+						<el-form-item > 
+						<el-date-picker v-model="filters.searchCreateTime" type="daterange"align="right" unlink-panels
+      					range-separator="至"start-placeholder="创建开始日期" end-placeholder="创建结束日期" value-format="yyyy-MM-dd"></el-date-picker>
+				      </el-form-item>
+					</el-col>
+					<el-col :md='12' :lg="6">
+						<el-form-item > 
+						<el-date-picker v-model="filters.searchExpireTime" type="daterange"align="right" unlink-panels
+      					range-separator="至"start-placeholder="到期开始日期" end-placeholder="到期结束日期" value-format="yyyy-MM-dd"></el-date-picker>
+				</el-form-item></el-col>
+  				<el-col :md='6' :lg="3">
 				<el-form-item >
 					<el-button type="primary" v-on:click="getGroupBase">查询</el-button>
-					<el-button type="primary" @click="handleAdd">新增</el-button>
 				</el-form-item>
 				</el-col>
 			</el-form>
 		</el-col>
+		<!--按钮组-->
+			<el-col :span="24" class="toolbar">	
+				<el-button type="primary" @click="handleAdd"  >新增</el-button>
+			
+			</el-col>
 		<!--列表-->
-		<el-table :data="groupbase" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" @sort-change="sortChange">
+		<el-table :data="groupbase"  ref="table" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" @sort-change="sortChange">
 			<el-table-column type="selection" width="55">
 			</el-table-column>
-				<el-table-column label="操作" width="280">
+				<el-table-column label="操作" width="350">
 				<template slot-scope="scope">
-					<el-button size="small" type="success" @click="handleQx(scope.$index, scope.row)">分配权限</el-button>
 					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-					<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+				   <el-button   size="small" @click="handleQx(scope.$index,scope.row)">分配权限</el-button>
+					<el-button  type="danger" size="small" @click="handleDel(scope.$index, scope.row)" v-show="scope.row.useStatus=='newly'">删除</el-button>
+				   <el-button    size="small" type='warning' @click="handleAudit(scope.$index,scope.row)" v-if="scope.row.useStatus === 'normal'">停用</el-button>
+					<el-button   size="small" type='success' @click="handleAudit(scope.$index,scope.row)" v-else>启用</el-button>
 				</template>
 			</el-table-column>
 			<el-table-column prop="groupCode" label="集团编号" width="120" sortable="custom">
@@ -61,7 +67,10 @@
 			</el-table-column>
 			<el-table-column prop="expireTime" label="到期日期" width="180" sortable="custom">
 			</el-table-column>
-			<el-table-column prop="useStatus" label="状态" min-width="100" :formatter="formatStatus" sortable="custom">
+			<el-table-column prop="useStatus"  label="状态" min-width="100" sortable="custom">
+				<template slot-scope="scope">
+			{{scope.row.useStatus | statusFilter}}
+				</template>
 			</el-table-column>
 		</el-table>
 
@@ -87,6 +96,7 @@
 			</div>
 		</el-dialog>
 
+
 		<!--新增界面-->
 		<el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false">
 			<el-form :model="addForm" label-width="120px" :rules="addFormRules" ref="addForm">
@@ -103,9 +113,9 @@
 			</div>
 		</el-dialog>
 		<!--分配权限-->
-		<el-dialog title="分配权限" :visible.sync="treeVisible" :close-on-click-modal="false">
+		<el-dialog title="分配权限" :visible.sync="treeVisible" :close-on-click-modal="false" :lock-scroll="true">
 			<el-input placeholder="输入关键字进行过滤" v-model="filterText" class="mb10"></el-input>
-			<el-tree ref="tree"  :data="trees" show-checkbox  @check-change="handleCheckChange"    :props="defaultProps"  node-key="id"  :filter-node-method="filterNode" :default-expanded-keys="expandedKeys">
+			<el-tree ref="tree"  :data="trees" show-checkbox     :props="defaultProps"  node-key="id"  :filter-node-method="filterNode" :default-expanded-keys="expandedKeys">
 			</el-tree>
 				<div slot="footer" class="dialog-footer">
 				<el-button @click.native="treeVisible = false">取消</el-button>
@@ -116,11 +126,11 @@
 	</div>
 </template>
 <script>
-	import {pager,pagerSizes} from '@/base/baseParam'
 	export default {
 		data() {
 			return {
 				//树
+				value3:true,
 				filterText:'',
 			    defaultProps: {
 		          children: 'children',
@@ -129,28 +139,28 @@
 		       expandedKeys:[],
 		       defaultKeys:[],
 			    count: 1,
-			    useStatus:[],
+			     useStatus:[],
 				//搜索
 				filters:
 				{
 					groupCode: '',
 					groupName:'',
 					useStatus:[],
+					searchCreateTime:[],
+					searchExpireTime:[]
 				},
 				groupbase: [],
 				trees:[],
 				total: 0,
-				pager:pager,
-				pagerSizes:pagerSizes,
+				updateId:'',
+				pager:this.global_.pager,
+				pagerSizes:this.global_.pagerSizes,
 				listLoading: false,
 				sels: [],//列表选中列
 				editFormVisible: false,//编辑界面是否显示
 				editLoading: false,
 				//编辑界面数据
 				editForm: {
-					id: 0,
-					companyCount: 0,
-					expireTime:'',
 					groupCode:'',
 					groupName: ''
 				},
@@ -174,24 +184,35 @@
 
 			}
 		},
+		 filters: {
+		 		//状态显示转换
+			statusFilter(useStatus) {
+			  const statusMap = {
+			  	"newly":'已创建',
+			    'normal':'已启用',
+			    'closed': '已停用'
+			  }
+			  return statusMap[useStatus]
+			},
+		 },
 	watch: {
 	      filterText(val) {
 	        this.$refs.tree.filter(val);
 	      }
 	    },
-	    
 		methods: {
+			//权限树过滤
 			   filterNode(value, data) {
-        if (!value) return true;
-        return data.label.indexOf(value) !== -1;
-      },
-			//状态显示转换
+		        if (!value) return true;
+		        return data.label.indexOf(value) !== -1;
+		      },
+		
 			formatStatus: function (row, column) {
-			for(var i = 0 ;i < this.useStatus.length;i++){
-					if(this.useStatus[i].key == row.useStatus){
-						return this.useStatus[i].value;
+				for(var i = 0 ;i < this.useStatus.length;i++){
+						if(this.useStatus[i].key == row.useStatus){
+							return this.useStatus[i].value;
+						}
 					}
-				}
 			},
 			handleSizeChange(val) {
 				this.pager.pageSize = val;
@@ -213,13 +234,17 @@
 				let para = {
 					likeGroupCode: this.filters.groupCode,
 					likeGroupName: this.filters.groupName,
-					searchUseStatus:this.filters.useStatus
+					searchUseStatus:this.filters.useStatus,
+					searchCreateTimeStart:this.filters.searchCreateTime[0],
+					searchCreateTimeEnd:this.filters.searchCreateTime[1],
+					searchExpireTimeStart:this.filters.searchExpireTime[0], 
+					searchExpireTimeEnd:this.filters.searchExpireTime[1], 
 				};
 				this.listLoading = true;
 					this.$axios({
 					    method: 'post',
 					    url:'/group/groupbase/page',
-					    params:pager,
+					    params:this.pager,
 					    data:para
 					}).then((res)=>{
 						this.total = res.totalRows;
@@ -237,7 +262,6 @@
 						this.listLoading = false;
 					});
 			},
-			
 			//删除
 			handleDel (index, row) {
 				this.$confirm('确认删除该记录吗?', '提示', {
@@ -245,7 +269,7 @@
 				}).then(() => {
 					this.listLoading = true;
 						this.$axios({
-								    method: 'DELETE',
+								    method: 'post',
 								    url:'/group/groupbase/delete/'+row.id,
 								}).then((res)=>{
 										this.$message({
@@ -254,17 +278,36 @@
 										});
 									this.getGroupBase();
 								})
-							}).catch(() => {
-							});
+							})
+			},
+			//停用
+			handleAudit(index, row){
+				this.$confirm('确认停用该记录吗?', '提示', {
+					type: 'warning'
+				}).then(() => {
+					this.listLoading = true;
+						this.$axios({
+								    method: 'post',
+								    url:'/group/groupbase/audit/'+row.id,
+								}).then((res)=>{
+										this.$message({
+										message: '停用成功',
+										type: 'success'
+										});
+									this.getGroupBase();
+								})
+						});
 			},
 			//显示编辑界面
 			handleEdit (index, row) {
+				this.updateId=row.id;
 				this.editFormVisible = true;
 				this.$axios({
 						    method: 'post',
 						    url:'/group/groupbase/get/'+row.id,
 						}).then((res)=>{
-							this.editForm = Object.assign({},res);
+							this.editForm.groupCode = res.groupCode;
+							this.editForm.groupName = res.groupName;
 				});
 			},
 			//显示新增界面
@@ -277,22 +320,21 @@
 					groupName: ''
 				};
 			},
-			handleQx(index,row){
+			handleQx(index, row){
 				this.treeVisible = true;
-				this.choosegroupId=row.id;
+				this.choosegroupId=row.id
 				    var tempfirst=[],tmepsecond=[],tmepthird=[],secondchildren=[];
 	     			this.$axios({
 							    method: 'post',
-							    url:'/system/basicresource/group/list/'+this.choosegroupId,
+							    url:'/group/groupbase/resource/'+row.id,
 								}).then((res)=>{
 									//第一层
 								 for (let i=0;i<res.length;i++){
-								 	if(res[i].flag!=undefined){
+								 	if(res[i].checked=="true"){
 								 		this.defaultKeys.push(res[i].id);
 								 	}
 				          			if( res[i].level=="first"){
 				          				 tempfirst.push({"id":res[i].id,"label":res[i].name,children: []});
-				          				 this.expandedKeys.push(res[i].id)
 				          			}
 				          			else if(res[i].level=="second"){
 				          		       tmepsecond.push(res[i])
@@ -300,7 +342,6 @@
 				          			else{
 				          				tmepthird.push(res[i])
 				          			}
-				          
 				          		}
 								for(let f=0;f<tempfirst.length;f++){
 					          		for (let s=0;s<tmepsecond.length;s++){
@@ -326,14 +367,9 @@
 									}
 							this.trees=tempfirst;
 							this.setCheckedKeys(this.defaultKeys);
-							
-							
 					});
 			},
-			//显示分配权限
-			handleQuanxian(index, row){
-				this.handleQx(index,row);
-			},
+			//设置权限选中
 			setCheckedKeys(val){
 				 this.$refs.tree.setCheckedKeys(val);
 				 this.defaultKeys=[];
@@ -343,12 +379,11 @@
 				this.$refs.editForm.validate((valid) => {
 					if (valid) {
 						this.$confirm('确认提交吗？', '提示', {}).then(() => {
-							this.editLoading = true;
+							this.listLoading = true;
 							let para = Object.assign({}, this.editForm);
-							let id=para.id;
 							this.$axios({
 							    method: 'post',
-							    url:'/group/groupbase/update/'+id,
+							    url:'/group/groupbase/update/'+this.updateId,
 							    data:para,
 							}).then((res)=>{
 							this.baseinfo = res.rows;
@@ -394,15 +429,6 @@
 			selsChange (sels) {
 				this.sels = sels;
 			}, 
-			//加载权限
-			handleCheckChange(data, checked, indeterminate) {
-		          const checkedList = this.$refs.tree.getCheckedNodes()
-		      },
-     		handleNodeClick(data, checked, indeterminate) {
-  
-	     	},
-	      	nodeexpand(val){
-	      	},
 	     	getCheckedNodes(){
 		      	var resource=this.$refs.tree.getCheckedNodes(),
 		      	resourceIds=[];
@@ -411,7 +437,7 @@
 		      	}
 	     		this.$axios({
 							    method: 'post',
-							    url:'/system/basicresource/group/update/'+this.choosegroupId,
+							    url:'/group/groupbase/group/update/'+this.choosegroupId,
 							    data:resourceIds
 								}).then((res)=>{
 								this.$message({
@@ -419,53 +445,9 @@
 										type: 'success'
 								});
 								this.treeVisible = false;
+								
 				});
-				
-	     	},
-	     	gettrees(){
-	     		 this.$refs.tree.setCheckedKeys([35]);
-	     		    var tempfirst=[],tmepsecond=[],tmepthird=[],secondchildren=[];
-	     			this.$axios({
-							    method: 'post',
-							    url:'/system/basicresource/group/list/'+this.choosegroupId,
-								}).then((res)=>{
-									//第一层
-								 for (let i=0;i<res.length;i++){
-				          			if( res[i].level=="first"){
-				          				 tempfirst.push({"id":res[i].id,"label":res[i].resourceName,children: []});
-				          			}
-				          			else if(res[i].level=="second"){
-				          		     tmepsecond.push(res[i])
-				          			}
-				          			else{
-				          				tmepthird.push(res[i])
-				          			}
-				          
-				          		}
-								for(let f=0;f<tempfirst.length;f++){
-					          		for (let s=0;s<tmepsecond.length;s++){
-						          			if( tmepsecond[s].parentId==tempfirst[f].id){
-						          				tempfirst[f].children.push({"id":tmepsecond[s].id,"label":tmepsecond[s].resourceName,children: []});
-						          		 	}
-					          		  }
-			     				}
-								//获取第二层(包含children)
-								for(var item in tempfirst){
-									if(tempfirst[item].children.length>0){
-									for(var children in tempfirst[item].children){
-									     secondchildren.push(tempfirst[item].children[children]);
-									}
-								}}
-								for(let se=0;se<secondchildren.length;se++){
-											for (let t=0;t<tmepthird.length;t++){
-							          			if( tmepthird[t].parentId==secondchildren[se].id){
-							          				secondchildren[se].children.push({"id":tmepthird[t].id,"label":tmepthird[t].resourceName});
-							          		 	}
-						          		  }
-									}
-								this.trees=tempfirst;
-								  this.$refs.tree.setCheckedKeys([35]);
-					});
+				this.$refs.table.clearSelection();
 	     	},
 		},
 		mounted() {
@@ -477,6 +459,7 @@
 </script>
 
 <style  scoped="scoped">
+	
 	.mb10{
 		margin-bottom:10px
 	}

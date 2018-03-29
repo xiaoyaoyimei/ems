@@ -1,23 +1,23 @@
 K 25
 svn:wc:ra_dav:version-url
 V 53
-/svn/b2c/!svn/ver/154/dms-html/src/views/pages/system
+/svn/b2c/!svn/ver/162/dms-html/src/views/pages/system
 END
-Role.vue
+SystemUser.vue
 K 25
 svn:wc:ra_dav:version-url
-V 62
-/svn/b2c/!svn/ver/162/dms-html/src/views/pages/system/Role.vue
+V 68
+/svn/b2c/!svn/ver/249/dms-html/src/views/pages/system/SystemUser.vue
 END
-BasicResource.vue
+SystemRole.vue
 K 25
 svn:wc:ra_dav:version-url
-V 71
-/svn/b2c/!svn/ver/162/dms-html/src/views/pages/system/BasicResource.vue
+V 68
+/svn/b2c/!svn/ver/249/dms-html/src/views/pages/system/SystemRole.vue
 END
-User.vue
+SystemResource.vue
 K 25
 svn:wc:ra_dav:version-url
-V 62
-/svn/b2c/!svn/ver/162/dms-html/src/views/pages/system/User.vue
+V 72
+/svn/b2c/!svn/ver/249/dms-html/src/views/pages/system/SystemResource.vue
 END

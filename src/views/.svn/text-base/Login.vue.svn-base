@@ -16,8 +16,6 @@
 </template>
 
 <script>
- // import { requestLogin } from '../api/api';
-  //import NProgress from 'nprogress'
   export default {
     data() {
       return {
@@ -47,9 +45,7 @@
         var _this = this;
         this.$refs.ruleForm2.validate((valid) => {
           if (valid) {
-            //_this.$router.replace('/table');
             this.logining = true;
-            //NProgress.start();
             var loginParams = { userName: this.ruleForm2.account, password: this.ruleForm2.checkPass };
             this.$router.push({ path: '/group/company' });
             this.$axios({
@@ -58,7 +54,6 @@
 							    data:loginParams,
 								}).then(data => {
 	              this.logining = false;
-	              //NProgress.done();
 	              let { code, message } = data;
 		              if (code !== 200) {
 		                this.$message({

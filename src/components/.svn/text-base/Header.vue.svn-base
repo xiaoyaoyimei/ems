@@ -9,9 +9,16 @@
 				</div>
 			</el-col>
 			<el-col :span="4" class="userinfo">
+					<el-dropdown trigger="hover" style="margin-right:20px;">
+					<span class="el-dropdown-link userinfo-inner">
+					{{sysUserCompany}}<i class="el-icon-arrow-down el-icon--right"></i></span>
+					<el-dropdown-menu slot="dropdown" >
+						<el-dropdown-item v-for="item in groupCompanys" @click.native="changecompanyId(item)" :key="item.id">{{item.companyName}}</el-dropdown-item>
+					</el-dropdown-menu>
+				</el-dropdown>
 				<el-dropdown trigger="hover">
 					<span class="el-dropdown-link userinfo-inner">
-					<img :src="this.sysUserAvatar" /> {{sysUserName}}</span>
+					{{sysUserName}}<i class="el-icon-arrow-down el-icon--right"></i></span>
 					<el-dropdown-menu slot="dropdown">
 						<el-dropdown-item>我的消息</el-dropdown-item>
 						<el-dropdown-item>设置</el-dropdown-item>
@@ -23,13 +30,14 @@
 </template>
 
 <script>
- import { mapGetters,mapActions } from 'vuex'
-	export default {
+ import { mapGetters,mapActions } from 'vuex';
+  export default {
 			data() {
 				return {
 					sysName:'DXRACER',
-					sysUserName: '方方大魔王',
-					sysUserAvatar:require("../assets/logo.png")
+					sysUserName: '',
+					sysUserCompany:'',
+					groupCompanys:[]
 				}
 			},
 		   computed: {
@@ -58,12 +66,35 @@
 							}).catch(() => {
 							});
 			},
-			//折叠导航栏
-		/*	collapse(){
-				this.collapsed=!this.collapsed;
-				this.$emit('listen-to',this.collapsed)
-			}*/
+			changecompanyId(data){
+				this.sysUserCompany=data.companyName;
+				sessionStorage.setItem('companyId',data.id);
+				window.location.reload()
+			},
 		},
+			mounted() {
+			var message = sessionStorage.getItem('message');
+			if (message) {
+				message = JSON.parse(message);
+				this.sysUserName = message.user.realName || '';
+				this.groupCompanys=message.user.groupCompanys||[];
+				if(sessionStorage.getItem('companyId')!=null){
+					for (let i=0;i<message.user.groupCompanys.length;i++){
+						if(message.user.groupCompanys[i].id == sessionStorage.getItem('companyId')){
+							this.sysUserCompany=message.user.groupCompanys[i].companyName;
+						}
+					}
+				}else{
+					this.sysUserCompany=message.user.groupCompanys[0].companyName||'';	
+				}
+				if(sessionStorage.getItem('companyId')!=null){
+					this.$axios.defaults.headers['companyId'] = sessionStorage.getItem('companyId');
+				}else{
+					this.$axios.defaults.headers['companyId']=message.user.groupCompanys[0].id;
+				}
+			}
+
+		}
 	}
 </script>
 

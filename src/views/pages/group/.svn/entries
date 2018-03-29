@@ -26,16 +26,16 @@ liushikun
 
 2ee11fe8-71e2-e249-a949-b536e76da2d0
 
-BaseInfo.vue
+GroupCompany.vue
 file
-162
+251
 
 
-delete
-2018-03-21T09:34:10.020609Z
-d1189837edeb319b9bc8a646c662c850
-2018-03-21T09:35:00.283175Z
-162
+
+2018-03-28T09:01:14.469196Z
+ec9050a7337b1203194a2cb679ce3953
+2018-03-29T01:22:41.284353Z
+251
 fanglijing
 
 
@@ -58,19 +58,35 @@ fanglijing
 
 
 
-16393
+11452
+
+BaseInfo.vue
+file
+186
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+deleted
 
 Company.vue
 file
-162
-
-
-
-2018-03-19T02:58:13.130757Z
-72a1a81bc4674268b6b3d7f2c5be8846
-2018-03-21T09:35:00.283175Z
-162
-fanglijing
+244
 
 
 
@@ -90,20 +106,18 @@ fanglijing
 
 
 
-
-
-11032
+deleted
 
 GroupBase.vue
 file
-172
+249
 
 
 
-2018-03-22T03:14:54.984774Z
-845403ae99db26a8b8afe1d7ecf2688a
-2018-03-22T03:18:47.241257Z
-172
+2018-03-28T08:36:15.272212Z
+c154241bf7c990aa2519ac97c33f0fe9
+2018-03-28T08:39:38.107702Z
+249
 fanglijing
 
 
@@ -126,5 +140,5 @@ fanglijing
 
 
 
-15853
+15399
 

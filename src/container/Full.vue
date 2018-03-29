@@ -50,6 +50,10 @@
 
 <style lang="scss">
  @import '~scss_color';
+ .m120{
+ 	max-width:120px;
+ 	max-height: 120px;
+ }
 .toolbar {
     background: #f2f2f2;
     padding:10px;

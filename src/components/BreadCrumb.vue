@@ -1,16 +1,5 @@
 <template>
- <!--<el-breadcrumb separator-class="el-icon-arrow-right">
- 	
- 	
-    <el-breadcrumb-item class="breadcrumb-item" v-for="(item, index) in list" :key="item.id">
-      <span class="active" v-if="isLast(index)">
-      	{{item.name}}
-      </span>
-      <strong v-else>  	{{item.name}}</strong>
-    </el-breadcrumb-item>
-  </el-breadcrumb>-->
-  
-  <el-col :span="24" class="breadcrumb-container">
+<el-col :span="24" class="breadcrumb-container">
 						<strong class="title">{{$route.name}}</strong>
 						<el-breadcrumb separator="/" class="breadcrumb-inner">
 							<el-breadcrumb-item v-for="item in $route.matched" :key="item.path">
