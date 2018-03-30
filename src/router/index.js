@@ -4,7 +4,7 @@ let routes = [
       redirect: '/login',
       hidden:true
     },
-      {
+    {
       path: '/login',
       name: '登录',
       component:  resolve => require(['@/views/Login.vue'], resolve),
@@ -18,10 +18,20 @@ let routes = [
 			component:  resolve => require(['@/container/Full.vue'], resolve),
 			children: [
 				{
+					name:'类型列表',
+					path: '/product/producttype',
+					component: resolve => require(['@/views/pages/product/ProductType.vue'], resolve)
+				},
+				{
+					name:'系列列表',
+					path: '/product/productseries',
+					component: resolve => require(['@/views/pages/product/ProductSeries.vue'], resolve)
+				},
+				{
 					name:'产品列表',
 					path: '/product/productsku',
 					component: resolve => require(['@/views/pages/product/ProductSku.vue'], resolve)
-				}
+				},
 				]
 		},
     {

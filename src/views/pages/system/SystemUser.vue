@@ -1,0 +1,502 @@
+<template>
+	<div>
+		<!--搜索工具条-->
+		<el-col :span="24" class="toolbar" >
+			<el-form :inline="true" :model="filters">
+				<el-form-item>
+					 <el-select v-model="filters.groupId" multiple collapse-tags  placeholder="请选择集团">
+			           <el-option v-for="item in groupOptions" :key="item.id" :label="item.groupName":value="item.id"></el-option>
+					 </el-select>
+  				</el-form-item>
+  				<el-form-item>
+					<el-input v-model="filters.realName" placeholder="真实姓名"></el-input>
+				</el-form-item>
+					<el-form-item>
+					<el-input v-model="filters.userName" placeholder="用户名"></el-input>
+				</el-form-item>
+						<el-form-item>
+					 <!--<el-select v-model="filters.userStatus" multiple collapse-tags  placeholder="请选择用户状态">
+			           <el-option v-for="item in userStatus" :key="item.id" :label="item.groupName":value="item.id"></el-option>
+					 </el-select>-->
+				</el-form-item>
+				<el-form-item>
+					<el-button type="success" v-on:click="getUsers">查询</el-button>
+				</el-form-item>
+			</el-form>
+		</el-col>
+			<el-col  class="toolbar" >
+			<el-button type="success" @click="handleAdd">新增</el-button>
+		</el-col>
+		<!--列表-->
+		<el-table :data="users" highlight-current-row v-loading="listLoading"  style="width: 100%;" @sort-change="sortChange">
+			<el-table-column type="selection" width="55">
+			</el-table-column>
+				<el-table-column prop="userName" label="用户名" min-width="120" sortable="custom">
+			</el-table-column>
+			<el-table-column prop="groupId" label="所属集团" width="180" sortable="custom"  :formatter="formatGroupId" >
+			</el-table-column>
+				<el-table-column prop="companyId" label="所属公司" width="200" sortable="custom"   >
+						<template slot-scope="scope">
+						<span v-for="(item,index) in scope.row.groupCompanys">
+							{{item.companyName}}  <span v-if="index<scope.row.groupCompanys.length-1">、</span>
+						</span>
+					</template>
+			</el-table-column>
+			<el-table-column prop="roleId" label="角色" min-width="180" sortable="custom">
+					<template slot-scope="scope">
+						<span v-for="(item,index) in scope.row.systemRoleList">
+							{{item.roleName}}  <span v-if="index<scope.row.systemRoleList.length-1">、</span>
+						</span>
+					</template>
+			</el-table-column>
+			<el-table-column prop="realName" label="真实姓名" min-width="100" sortable="custom">
+			</el-table-column>
+			<el-table-column prop="mobilePhone" label="手机号 " min-width="100" sortable="custom">
+				
+			</el-table-column>
+				<el-table-column prop="userStatus" label="用户状态 " min-width="100" sortable="custom">
+						<template slot-scope="scope">
+						<span v-for="(item,index) in scope.row.userStatus">
+						<span v-if="item=='Y'">正常</span><span v-else>停用</span>
+						</span>
+					</template>
+			</el-table-column>
+			<el-table-column prop="createTime" label="创建时间" min-width="180" sortable="custom">
+			</el-table-column>
+			
+					<el-table-column label="操作"width="100" >
+						<template slot-scope="scope">
+						<i class="el-icon-edit-outline" @click="handleEdit(scope.$index, scope.row)" style="margin-right: 10px;cursor: pointer;" alt="编辑"></i>
+						<i class="el-icon-delete" @click="handleDel(scope.$index, scope.row)" style="margin-right: 10px;cursor: pointer;" alt="删除"></i>
+						</template>
+		      <!--<template slot-scope="scope">
+		        <el-popover trigger="click" placement="bottom"  ref="popovercz">
+		        	<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+					<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+					<el-button type="success" size="small" @click="handleUnlock(scope.$index, scope.row)">解锁</el-button>
+					<el-button size="small" @click="handleResetpass(scope.$index, scope.row)">重置密码</el-button>
+		          <div slot="reference" class="name-wrapper">
+		          	 <i class="el-icon-info" ></i>
+		          </div>
+		        </el-popover>
+		      </template>-->
+		    </el-table-column>
+		</el-table>
+
+		<!--分页工具条-->
+		<el-col :span="24" class="toolbar">
+			 <el-pagination   @size-change="handleSizeChange"  @current-change="handleCurrentChange":current-page="pager.currentPage":page-sizes="pagerSizes":page-size="pager.pageSize" layout="total, sizes, prev, pager, next, jumper" :total=total>
+		    </el-pagination>
+	   </el-col>
+		<!--编辑界面-->
+		<el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false" width="50%">
+			<el-form :model="editForm" label-width="120px" :rules="editFormRules" ref="editForm" >
+				<el-form-item label="用户名 " prop="userName" >
+					<span> {{editForm.userName}}</span>
+				</el-form-item>	
+				<el-form-item label="所属集团" prop="groupId">
+					<el-select v-model="editForm.groupId" placeholder="请选择" @change="chooseCompanys" > 
+				    	<el-option v-for="item in groupOptions" :key="item.id" :label="item.groupName" :value="item.id"></el-option>
+  					</el-select>
+				</el-form-item>
+					<el-form-item label="所属公司" prop="companyIds" >
+					 <el-select v-model="editForm.companyIds" placeholder="请选择" multiple >
+				    	<el-option v-for="item in companyOptions" :key="item.id"  :label="item.companyName" :value="item.id"></el-option>
+  					 </el-select>
+				</el-form-item>
+				<el-form-item label="角色名称 " prop="roleIds">
+						<el-select v-model="editForm.roleIds" placeholder="请选择"  multiple >
+				    	<el-option v-for="item in roleOptions" :key="item.id" :label="item.roleName" :value="item.id"></el-option>
+  					</el-select>
+				</el-form-item>
+				<el-form-item label="真实姓名 " prop="realName">
+					<el-input type="text" placeholder="真实姓名 " v-model="editForm.realName" > </el-input>
+				</el-form-item>
+				<el-form-item label="手机号" prop="mobilePhone">
+					<el-input type="text" placeholder="手机号 " v-model.number="editForm.mobilePhone" > </el-input>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click.native="editFormVisible = false">取消</el-button>
+				<el-button type="primary" @click.native="editSubmit" :loading="editLoading">提交</el-button>
+			</div>
+		</el-dialog>
+
+		<!--新增界面-->
+		<el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false">
+			<el-form :model="addForm" label-width="120px" :rules="addFormRules" ref="addForm">
+				<el-form-item label="所属集团" prop="groupId">
+					<el-select v-model="addForm.groupId" placeholder="请选择" @change="chooseCompanys"  value-key="id">
+				    	<el-option v-for="item in groupOptions" :key="item.id" :label="item.groupName" :value="item.id"></el-option>
+  					</el-select>
+				</el-form-item>
+					<el-form-item label="所属公司" prop="companyIds">
+					<el-select v-model="addForm.companyIds" placeholder="请选择" multiple  value-key="id">
+				    	<el-option v-for="item in companyOptions" :key="item.id" :label="item.companyName" :value="item.id"></el-option>
+  					</el-select>
+				</el-form-item>
+				<el-form-item label="角色名称 " prop="roleIds">
+					<el-select v-model="addForm.roleIds" placeholder="请选择"  multiple   value-key="id"> 
+				    	<el-option v-for="item in roleOptions" :key="item.id" :label="item.roleName" :value="item.id"></el-option>
+  					</el-select>
+				</el-form-item>
+				<el-form-item label="用户名 " prop="userName">
+					<el-input type="text" placeholder="用户名 " v-model="addForm.userName" > </el-input>
+				</el-form-item>	
+				<el-form-item label="密码 " prop="password">
+					<el-input type="text" placeholder="密码 " v-model="addForm.password" > </el-input>
+				</el-form-item>
+				<el-form-item label="真实姓名 " prop="realName">
+					<el-input type="text" placeholder="真实姓名 " v-model="addForm.realName" > </el-input>
+				</el-form-item>
+				<el-form-item label="手机号" prop="mobilePhone">
+					<el-input type="text" placeholder="手机号 " v-model.number="addForm.mobilePhone" > </el-input>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click.native="addFormVisible = false">取消</el-button>
+				<el-button type="success" @click.native="addSubmit" :loading="addLoading">提交</el-button>
+			</div>
+		</el-dialog>
+
+	</div>
+</template>
+<script>
+	export default {
+		data() {
+			var validateUser = (rule, value, callback) => {
+				if(value===''){
+		           callback(new Error('请输入用户名'));
+		        } 
+		         if  (value.length>12||value.length<6){
+		        	  callback(new Error('用户名长度在6-12之间'));	
+	         	 }
+			     else {
+				        this.$axios({
+						    method: 'post',
+						    url:'/system/systemuser/list',
+						    data:{ "userName": value},
+						}).then((res)=>{
+					         if(res.length>0){
+					                callback(new Error('用户名已经存在'));	
+					         }else{
+					         	 callback()
+					         }
+						}).catch(function () {
+              		  		callback(new Error('服务异常'))
+            			})
+			          }
+		       
+    		 };
+			return {
+				//搜索
+				filters:{
+					companyCode: '',
+					companyName:'',
+					statusEnum:[],
+				},
+				groupOptions:[],
+				companyOptions:[],
+				roleOptions:[],
+				users: [],
+				total: 0,
+				pager:this.global_.pager,
+				pagerSizes:this.global_.pagerSizes,
+				listLoading: false,
+				sels: [],//列表选中列
+				editFormVisible: false,//编辑界面是否显示
+				editLoading: false,
+				//编辑界面数据
+				editForm: {
+				},
+				addFormVisible: false,//新增界面是否显示
+				addLoading: false,
+				//新增-编辑界面验证
+				addFormRules: {
+					groupId: [
+						{ required: true, message: '请选择所属集团', trigger: 'blur,change' }
+					],
+					companyIds:[
+						{ required: true, message: '请选择所属公司', trigger: 'blur' }
+					],
+					roleIds:[
+						{ required: true, message: '请选择角色', trigger: 'blur' }
+					],
+					userName:[
+						{  required: true,  validator: validateUser, trigger: 'blur' }
+					],
+					realName:[
+						{ required: true, message: '请输入真实姓名', trigger: 'blur' }
+					],
+					'password':[
+						 { required: true, message: '请输入密码', trigger: 'blur' },
+						 { min: 6, max: 20, message: '密码长度6到12位', trigger: 'blur' }
+					],
+					mobilePhone:[{type:'number',required: true, message: '请输入手机号', trigger: 'blur' }]
+				},
+					editFormRules: {
+					groupId: [
+						{ required: true, message: '请选择所属集团', trigger: 'blur,change' }
+					],
+					companyIds:[
+						{ required: true, message: '请选择所属公司', trigger: 'blur' }
+					],
+					roleIds:[
+						{ required: true, message: '请选择角色', trigger: 'blur' }
+					],
+					realName:[
+						{ required: true, message: '请输入真实姓名', trigger: 'blur' }
+					],
+					mobilePhone:[{type:'number',required: true, message: '请输入正确的手机号'}]
+				},
+				//新增界面数据
+				addForm: {
+					groupId:'',
+					companyIds:[],
+					roleIds:[],
+					password:'',
+					userName:'',
+					realName:'',
+					mobilePhone:'',
+				}
+			}
+		},
+		methods: {
+			formatGroupId(row,column){
+				for(var i = 0 ;i < this.groupOptions.length;i++){
+					if(this.groupOptions[i].id == row.groupId){
+						return this.groupOptions[i].groupName;
+					}
+				}
+			},
+			handleCurrentChange(val) {
+				this.pager.currentPage = val;
+				this.getUsers();
+			},
+				handleSizeChange(val){
+					this.pager.pageSize=val;
+					this.getUsers();
+				},
+				sortChange(val){
+					val.order == 'ascending' ? val.order='asc':val.order='desc';
+					this.pager.sortType=val.order;
+					this.pager.sortName=val.prop;
+					this.getUsers();
+				},
+			//获取角色列表
+			getUsers() {
+				let para = {
+					likeMobilePhone: this.filters.MobilePhone,
+					likeRealName:this.filters.realName,
+					likeUserName:this.filters.userName,
+					searchGroupId:this.filters.groupId,
+					userStatus:this.userStatus
+				};
+				this.listLoading = true;
+					this.$axios({
+					    method: 'post',
+					    url:'/system/systemuser/page',
+					    params:this.pager,
+					    data:para,
+					}).then((res)=>{
+						this.total = res.totalRows;
+						this.users = res.rows;
+						this.listLoading = false;
+					});
+			},
+			//获取所属集团
+			getGroup(){
+					this.$axios({
+					    method: 'post',
+					    url:'/group/groupbase/list',
+					    data:{},
+					}).then((res)=>{
+						this.groupOptions = res;
+					});
+			},
+			chooseCompanys(val){
+				   	this.companyOptions=[];
+				   	this.addForm.companyIds=[];
+				   	this.editForm.companyIds=[];
+				   	this.roleOptions =[];
+				   	this.addForm.roleIds=[],
+				   		this.editForm.roleIds=[];
+					this.$axios({
+					    method: 'post',
+					    url:'/group/groupcompany/list',
+					    data:{
+					    	searchGroupId:[val]
+					    }
+					}).then((res)=>{
+						this.companyOptions = res;
+					});
+					this.$axios({
+					    method: 'post',
+					    url:'/system/systemrole/list',
+					    data:{searchGroupId:[val]},
+					}).then((res)=>{
+						this.roleOptions = res;
+					});
+					
+			},
+			//删除
+			handleDel(index, row){
+				this.$confirm('确认删除该记录吗?', '提示', {
+					type: 'warning'
+				}).then(() => {
+					this.listLoading = true;
+						this.$axios({
+								    method: 'post',
+								    url:'/system/systemuser/delete/'+row.id,
+								}).then((res)=>{
+										this.$message({
+										message: '删除成功',
+										duration:'1000',
+										type: 'success'
+										});
+									this.getUsers();
+								})
+							}).catch(() => {
+							});
+			},
+				handleUnlock(index, row){
+				this.$confirm('确认解锁该用户吗?', '提示', {
+					type: 'warning'
+				}).then(() => {
+					this.listLoading = true;
+						this.$axios({
+								    method: 'post',
+								    url:'/system/systemuser/unlock/'+row.id,
+								}).then((res)=>{
+										this.$message({
+										message: '解锁成功',
+										duration:'1000',
+										type: 'success'
+										});
+									this.getUsers();
+								})
+							}).catch(() => {
+							});
+			},
+				handleResetpass(index, row){
+				this.$confirm('确认重置密码吗?', '提示', {
+					type: 'warning'
+				}).then(() => {
+						this.listLoading = true;
+						this.$axios({
+								    method: 'post',
+								    url:'/system/systemuser/restpassword/'+row.id,
+								}).then((res)=>{
+										this.$message({
+										message: '重置密码成功',
+										duration:'1000',
+										type: 'success'
+										});
+										this.getUsers();
+								})
+						});
+			},
+			//显示编辑界面
+			handleEdit(index, row) {
+				this.editFormVisible = true;
+				this.$axios({
+						    method: 'post',
+						    url:'/system/systemuser/get/'+row.id,
+						}).then((res)=>{
+							this.editForm.id=res.id;
+							this.editForm.groupId=res.groupId;
+							this.chooseCompanys(res.groupId);
+							this.editForm.userName=res.userName;
+						    for(let i=0;i<res.groupCompanys.length;i++){
+						    	this.editForm.companyIds[i]=res.groupCompanys[i].id
+						    }
+						    for(let i=0;i<res.systemRoleList.length;i++){
+						    	this.editForm.roleIds[i]=res.systemRoleList[i].id
+						    }
+						    this.editForm.realName=res.realName;
+						      this.editForm.mobilePhone=res.mobilePhone*1;
+						      this.editForm.userStatus=res.userStatus;
+				});
+			},
+			//编辑
+			editSubmit () {
+				this.$refs.editForm.validate((valid) => {
+					if (valid) {
+						this.$confirm('确认提交吗？', '提示', {}).then(() => {
+							this.editLoading = true;
+							//编辑用户时不能修改userName
+							delete this.editForm['userName'];
+							let para = Object.assign({}, this.editForm);
+							let id=para.id;
+							this.$axios({
+							    method: 'post',
+							    url:'/system/systemuser/update/'+id,
+							    data:para,
+							}).then((res)=>{
+								this.users = res.rows;
+								this.editLoading = false;
+								this.$message({
+										message: '提交成功',
+										type: 'success'
+									});
+								this.$refs['editForm'].resetFields();
+								this.editFormVisible = false;
+								this.getUsers();
+							});
+						});
+					}
+				});
+			},
+			//显示新增界面
+			handleAdd () {
+				this.addFormVisible = true;
+				this.addForm = {
+					groupId:'',
+					companyIds:[],
+					roleIds:[],
+					password:'',
+					userName:'',
+					realName:'',
+					mobilePhone:''
+				};
+			},
+			//新增
+			addSubmit() {
+				this.$refs.addForm.validate((valid) => {
+					if (valid) {
+						this.$confirm('确认提交吗？', '提示', {}).then(() => {
+							this.addLoading = true;
+							let para = Object.assign({}, this.addForm);
+								this.$axios({
+							    method: 'post',
+							    url:'/system/systemuser/add',
+							    data:para,
+								}).then((res)=>{
+								this.users = res.rows;
+								this.listLoading = false;
+								this.$message({
+										message: '提交成功',
+										type: 'success'
+									});
+									this.$refs['addForm'].resetFields();
+									this.addFormVisible = false;
+									this.getUsers();
+							});
+						});
+					}
+				});
+			},
+			selsChange (sels) {
+				this.sels = sels;
+			},
+		},
+		mounted() {
+			this.getUsers();
+			this.getGroup()
+		}
+	}
+
+</script>
+
+<style >
+</style>

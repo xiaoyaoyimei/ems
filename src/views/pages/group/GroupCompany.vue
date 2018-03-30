@@ -1,0 +1,359 @@
+<template>
+	<div>
+		<!--搜索工具条-->
+		<el-col :span="24" class="toolbar">
+			<el-form :inline="true" :model="filters">
+				<el-form-item>
+					<el-input v-model="filters.companyCode" placeholder="公司编号"></el-input>
+				</el-form-item>
+				<el-form-item>
+					<el-input v-model="filters.companyName" placeholder="公司名称"></el-input>
+				</el-form-item>
+				<el-form-item>
+					<el-input v-model="filters.likeShortName" placeholder="公司简称"></el-input>
+				</el-form-item>
+					<el-form-item>
+					<el-select v-model="filters.searchStatus" multiple collapse-tags  placeholder="请选择状态">
+			           <el-option v-for="item in statusOptions" :key="item.index" :label="item.value":value="item.key"></el-option>
+					 </el-select>
+					 <el-select v-model="filters.searchGroupId"  multiple collapse-tags  placeholder="请选择所属集团" >
+			         <el-option v-for="item in groupOptions" :key="item.id" :label="item.groupName":value="item.id"></el-option>
+					 </el-select>
+  				</el-form-item>
+					<el-form-item>
+					<el-date-picker v-model="filters.searchCreateTime" type="daterange"align="right" unlink-panels
+      					range-separator="至"start-placeholder="创建开始日期" end-placeholder="创建结束日期" value-format="yyyy-MM-dd"></el-date-picker>
+				</el-form-item>
+				<el-form-item>
+					<el-button type="success" v-on:click="getCompany">查询</el-button>
+				</el-form-item>
+			</el-form>
+		</el-col>
+			<el-col  class="toolbar" >
+			<el-button type="success" @click="handleAdd">新增</el-button>
+		</el-col>
+		<!--列表-->
+		<el-table :data="companys" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" @sort-change="sortChange">
+			<el-table-column type="selection" width="55">
+			</el-table-column>
+			<el-table-column prop="companyCode" label="公司编号" width="120" sortable="custom"></el-table-column>
+			<el-table-column prop="companyName" label="公司名称" min-width="180" sortable="custom">
+			</el-table-column>
+			<el-table-column prop="createTime" label="创建日期 " width="180"  sortable="custom">
+			</el-table-column>
+			<el-table-column prop="groupBase.groupName" label="所属集团" width="180" sortable="custom"  >
+			</el-table-column>
+			<el-table-column prop="shortName" label="公司简称" width="180" sortable="custom">
+			</el-table-column>
+			<el-table-column prop="status" label="状态" min-width="180" :formatter="formatStatus" sortable="custom">
+			</el-table-column>
+				<el-table-column label="操作" width="150">
+				<template slot-scope="scope">
+					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+					<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+				</template>
+			</el-table-column>
+		</el-table>
+
+		<!--分页工具条-->
+		<el-col :span="24" class="toolbar">
+			<el-pagination layout="total, sizes, prev, pager, next, jumper"  @size-change="handleSizeChange" @current-change="handleCurrentChange" :page-sizes="[2, 10, 20, 40]" :total="total" style="float:right;" >
+			</el-pagination>
+		</el-col>
+
+		<!--编辑界面-->
+		<el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false">
+			<el-form :model="editForm" label-width="120px" :rules="addFormRules" ref="editForm">
+				<el-form-item label="公司编号" >
+					<el-input v-model="editForm.companyCode" ></el-input>
+				</el-form-item>
+				<el-form-item label="公司名称" >
+					<el-input v-model="editForm.companyName" ></el-input>
+				</el-form-item>
+			 <el-form-item label="所属集团" prop="groupId">
+			 	  <el-select v-model="editForm.groupId" placeholder="请选择">
+				    <el-option
+				      v-for="item in groupOptions"
+				      :key="item.id"
+				      :label="item.groupName"
+				      :value="item.id">
+				    </el-option>
+  				</el-select>
+				</el-form-item>
+				<el-form-item label="公司简称 ">
+					<el-input type="text" placeholder="公司简称 " v-model="editForm.shortName" > </el-input>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click.native="editFormVisible = false">取消</el-button>
+				<el-button type="success" @click.native="editSubmit" :loading="editLoading">提交</el-button>
+			</div>
+		</el-dialog>
+
+		<!--新增界面-->
+		<el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false">
+			<el-form :model="addForm" label-width="120px" :rules="addFormRules" ref="addForm">
+				<el-form-item label="公司编号" prop="companyCode">
+					<el-input v-model="addForm.companyCode" auto-complete="off"></el-input>
+				</el-form-item>
+				<el-form-item label="公司名称" prop="companyName">
+					<el-input v-model="addForm.companyName" auto-complete="off"></el-input>
+				</el-form-item>
+				<el-form-item label="所属集团" prop="groupId">
+					  <el-select v-model="addForm.groupId" placeholder="请选择">
+					    <el-option
+					      v-for="item in groupOptions"
+					      :key="item.id"
+					      :label="item.groupName"
+					      :value="item.id">
+					    </el-option>
+	  				</el-select>
+				</el-form-item>
+				<el-form-item label="公司简称 ">
+					<el-input type="text" placeholder="公司简称 " v-model="addForm.shortName" > </el-input>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click.native="addFormVisible = false">取消</el-button>
+				<el-button type="success" @click.native="addSubmit" :loading="addLoading">提交</el-button>
+			</div>
+		</el-dialog>
+
+	</div>
+</template>
+<script>
+	export default {
+		data() {
+			return {
+				//搜索
+				filters:{
+					companyCode: '',
+					companyName:'',
+					likeShortName:'',
+					searchCreateTime:'',
+					searchGroupId:[],
+					searchStatus:[]
+				},
+				groupOptions:[],
+				statusOptions:[],
+				companys: [],
+				total: 0,
+				pager:this.global_.pager,
+				pagerSizes:this.global_.pagerSizes,
+				listLoading: false,
+				sels: [],//列表选中列
+				editFormVisible: false,//编辑界面是否显示
+				editLoading: false,
+				//编辑界面数据
+				editForm: {
+					id: 0,
+					companyCode:'',
+					companyName: '',
+					groupId:0,
+					shortName:'',
+					status:''
+				},
+				addFormVisible: false,//新增界面是否显示
+				addLoading: false,
+				//新增-编辑界面验证
+				addFormRules: {
+					companyCode: [
+						{ required: true, message: '请输入公司编号', trigger: 'blur' }
+					],
+					companyName: [
+						{ required: true, message: '请输入公司名称', trigger: 'blur' }
+					],
+					groupId: [
+						{ required: true, message: '请选择所属公司', trigger: 'blur' }
+					]
+				},
+				//新增界面数据
+				addForm: {
+					companyCode:'',
+					companyName: '',
+					groupId:0,
+					shortName:'',
+				}
+			}
+		},
+		methods: {
+			//状态显示转换
+			formatStatus: function (row, column) {
+				for(var i = 0 ;i < this.statusOptions.length;i++){
+					if(this.statusOptions[i].key == row.status){
+						return this.statusOptions[i].value;
+					}
+				}
+			},
+			formatGroupId(row,column){
+				for(var i = 0 ;i < this.groupOptions.length;i++){
+					if(this.groupOptions[i].id == row.groupId){
+						return this.groupOptions[i].groupName;
+					}
+				}
+			},
+			handleSizeChange(val) {
+				this.pager.pageSize = val;
+				this.getCompany();
+			},
+			handleCurrentChange(val) {
+				this.pager.currentPage = val;
+				this.getCompany();
+			},
+			//表格排序
+			sortChange(val){
+					val.order == 'ascending' ? val.order='asc':val.order='desc';
+					this.pager.sortType=val.order;
+					this.pager.sortName=val.prop;
+					this.getCompany();
+				},
+			//获取集团列表
+			getCompany() {
+				let para = {
+					likeCompanyCode: this.filters.companyCode,
+					likeCompanyName: this.filters.companyName,
+					likeShortName:this.filters.likeShortName,
+					searchCreateTimeBegin:this.filters.searchCreateTime[0],
+					searchCreateTimeEnd:this.filters.searchCreateTime[1],
+					searchGroupId:this.filters.searchGroupId,
+					searchStatus:this.filters.searchStatus
+				};
+				this.listLoading = true;
+					this.$axios({
+					    method: 'post',
+					    url:'/group/groupcompany/page',
+					    params:this.pager,
+					    data:para,
+					}).then((res)=>{
+						this.total = res.totalRows;
+						this.companys = res.rows;
+						this.listLoading = false;
+					});
+			},
+			//获取所属集团
+			getGroup(){
+					this.$axios({
+					    method: 'post',
+					    url:'/group/groupbase/list',
+					    data:{},
+					}).then((res)=>{
+						this.groupOptions = res;
+					});
+			},
+			//获取状态
+			getStatus(){
+					this.$axios({
+					    method: 'post',
+					    url:'/group/groupcompany/query/status',
+					}).then((res)=>{
+						this.statusOptions = res;
+						this.listLoading = false;
+					});
+			},
+			//删除
+			handleDel(index, row){
+				this.$confirm('确认删除该记录吗?', '提示', {
+					type: 'warning'
+				}).then(() => {
+					this.listLoading = true;
+						this.$axios({
+								    method: 'post',
+								    url:'/group/groupcompany/delete/'+row.id,
+								}).then((res)=>{
+										this.$message({
+										message: '删除成功',
+										type: 'success'
+										});
+									this.getCompany();
+								})
+							}).catch(() => {
+							});
+			},
+			//显示编辑界面
+			handleEdit(index, row) {
+				this.editFormVisible = true;
+					this.$axios({
+						    method: 'post',
+						    url:'/group/groupcompany/get/'+row.id,
+						}).then((res)=>{
+							this.editForm = Object.assign({},res);
+				});
+			},
+			//显示新增界面
+			handleAdd () {
+				this.addFormVisible = true;
+				this.addForm = {
+				   companyCode:'',
+					companyName: '',
+					shortName:'',
+				};
+			},
+			//编辑
+			editSubmit () {
+				this.$refs.editForm.validate((valid) => {
+					if (valid) {
+						this.$confirm('确认提交吗？', '提示', {}).then(() => {
+							this.editLoading = true;
+							console.log(this.editForm)
+							let para = Object.assign({}, this.editForm);
+							let id=para.id;
+							this.$axios({
+							    method: 'post',
+							    url:'/group/groupcompany/update/'+id,
+							    data:para,
+							}).then((res)=>{
+							this.companys = res.rows;
+							this.editLoading = false;
+							this.$message({
+									message: '提交成功',
+									type: 'success'
+								});
+								this.$refs['editForm'].resetFields();
+								this.editFormVisible = false;
+								this.getCompany();
+							});
+						});
+					}
+				});
+			},
+			//新增
+			addSubmit() {
+				this.$refs.addForm.validate((valid) => {
+					if (valid) {
+						this.$confirm('确认提交吗？', '提示', {}).then(() => {
+							this.addLoading = true;
+							let para = Object.assign({}, this.addForm);
+								this.$axios({
+							    method: 'post',
+							    url:'/group/groupcompany/add',
+							    data:para,
+								}).then((res)=>{
+								this.companys = res.rows;
+								this.listLoading = false;
+								this.$message({
+										message: '提交成功',
+										type: 'success'
+									});
+									this.$refs['addForm'].resetFields();
+									this.addFormVisible = false;
+									this.getCompany();
+							});
+						});
+					}
+				});
+			},
+			selsChange (sels) {
+				this.sels = sels;
+			},
+		},
+		mounted() {
+			this.getCompany();
+			this.getGroup();
+			this.getStatus();
+		}
+	}
+
+</script>
+
+<style >
+</style>

@@ -2,12 +2,15 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+//使用奥森图标
+import 'vue-awesome/icons'
+import Icon from 'vue-awesome/components/Icon'
 import routes from '@/router/index'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import App from './App'
 import store from '@/vuex/store'
-import 'font-awesome/css/font-awesome.min.css'
+//import 'font-awesome/css/font-awesome.min.css'
 Vue.use(ElementUI)
 Vue.use(VueRouter)
 Vue.config.productionTip = false
@@ -51,15 +54,19 @@ router.beforeEach((to, from, next) => {
     next()
   }
 })
-Vue.filter('imgfilter', function (value) {
-  if (!value) return ''
-  value = value.toString()
-  return  global_.imgurl+value
+// 导入所有的过滤器变量
+import * as custom from '@/base/basefilters/'
+
+// 导出的是对象，可以直接通过key和value来获得过滤器的名和过滤器的方法
+Object.keys(custom).forEach(key => {
+    Vue.filter(key, custom[key])
 })
+
+Vue.component('icon', Icon)
 var ems=new Vue({
   el: '#app',
   router,
   store,//使用store
-  components: { App },
+  components: { App,Icon },
   template: '<App/>'
 })

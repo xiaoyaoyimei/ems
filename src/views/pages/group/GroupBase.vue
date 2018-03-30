@@ -31,32 +31,24 @@
 						<el-form-item > 
 						<el-date-picker v-model="filters.searchExpireTime" type="daterange"align="right" unlink-panels
       					range-separator="至"start-placeholder="到期开始日期" end-placeholder="到期结束日期" value-format="yyyy-MM-dd"></el-date-picker>
-				</el-form-item></el-col>
+						</el-form-item>
+					</el-col>
   				<el-col :md='6' :lg="3">
 				<el-form-item >
-					<el-button type="primary" v-on:click="getGroupBase">查询</el-button>
+					<el-button type="success" v-on:click="getGroupBase">查询</el-button>
 				</el-form-item>
 				</el-col>
 			</el-form>
 		</el-col>
 		<!--按钮组-->
 			<el-col :span="24" class="toolbar">	
-				<el-button type="primary" @click="handleAdd"  >新增</el-button>
-			
+				<el-button type="success" @click="handleAdd"  >新增</el-button>
 			</el-col>
 		<!--列表-->
 		<el-table :data="groupbase"  ref="table" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" @sort-change="sortChange">
 			<el-table-column type="selection" width="55">
 			</el-table-column>
-				<el-table-column label="操作" width="350">
-				<template slot-scope="scope">
-					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-				   <el-button   size="small" @click="handleQx(scope.$index,scope.row)">分配权限</el-button>
-					<el-button  type="danger" size="small" @click="handleDel(scope.$index, scope.row)" v-show="scope.row.useStatus=='newly'">删除</el-button>
-				   <el-button    size="small" type='warning' @click="handleAudit(scope.$index,scope.row)" v-if="scope.row.useStatus === 'normal'">停用</el-button>
-					<el-button   size="small" type='success' @click="handleAudit(scope.$index,scope.row)" v-else>启用</el-button>
-				</template>
-			</el-table-column>
+				
 			<el-table-column prop="groupCode" label="集团编号" width="120" sortable="custom">
 			</el-table-column>
 			<el-table-column prop="groupName" label="集团名称" width="180" sortable="custom">
@@ -70,6 +62,15 @@
 			<el-table-column prop="useStatus"  label="状态" min-width="100" sortable="custom">
 				<template slot-scope="scope">
 			{{scope.row.useStatus | statusFilter}}
+				</template>
+			</el-table-column>
+			<el-table-column label="操作" width="350">
+				<template slot-scope="scope">
+					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+				   <el-button   size="small" @click="handleQx(scope.$index,scope.row)">分配权限</el-button>
+					<el-button  type="danger" size="small" @click="handleDel(scope.$index, scope.row)" v-show="scope.row.useStatus=='newly'">删除</el-button>
+				   <el-button    size="small" type='warning' @click="handleAudit(scope.$index,scope.row)" v-if="scope.row.useStatus === 'normal'">停用</el-button>
+					<el-button   size="small" type='success' @click="handleAudit(scope.$index,scope.row)" v-else>启用</el-button>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -92,7 +93,7 @@
 			</el-form>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click.native="editFormVisible = false">取消</el-button>
-				<el-button type="primary" @click.native="editSubmit" :loading="editLoading">提交</el-button>
+				<el-button type="success" @click.native="editSubmit" :loading="editLoading">提交</el-button>
 			</div>
 		</el-dialog>
 
@@ -119,7 +120,7 @@
 			</el-tree>
 				<div slot="footer" class="dialog-footer">
 				<el-button @click.native="treeVisible = false">取消</el-button>
-				<el-button type="primary" @click.native="getCheckedNodes" >提交</el-button>
+				<el-button type="success" @click.native="getCheckedNodes" >提交</el-button>
 			</div>
 		</el-dialog>
 

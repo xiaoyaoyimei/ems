@@ -50,6 +50,13 @@
 
 <style lang="scss">
  @import '~scss_color';
+ .el-container .el-menu-item.is-active{
+	color:$color-primary;
+}
+.el-button--primary{
+	background-color:$color-primary;
+	border-color:$color-primary;
+}
  .m120{
  	max-width:120px;
  	max-height: 120px;
