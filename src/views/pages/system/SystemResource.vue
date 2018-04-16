@@ -2,15 +2,15 @@
 	<div>
 		<!--搜索工具条-->
 		<el-col :span="24" class="toolbar">
-			<el-form :inline="true" :model="filters">
+			<el-form :inline="true" :model="filters" @keyup.enter.native="getSystemResource">
 				<el-form-item>
 					<el-cascader :options="pResoure" change-on-select  v-model="filters.searchParentId"></el-cascader>
 				</el-form-item>
 				<el-form-item>
-					<el-input v-model="filters.resourceCode" placeholder="资源代码"></el-input>
+					<el-input v-model.trim="filters.resourceCode" placeholder="资源代码"></el-input>
 				</el-form-item>
 					<el-form-item>
-					<el-input v-model="filters.resourceName" placeholder="资源名称"></el-input>
+					<el-input v-model.trim="filters.resourceName" placeholder="资源名称"></el-input>
 				</el-form-item>
 				<el-form-item>
 					<el-button type="success" v-on:click="getSystemResource">查询</el-button>
@@ -35,8 +35,8 @@
 			</el-table-column>
 					<el-table-column label="操作" width="150">
 				<template slot-scope="scope">
-					<el-button   size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-					<el-button  type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+						<i class="fa fa-edit"  @click="handleEdit(scope.$index, scope.row)" title="编辑"></i>
+		      			<i class="fa fa-trash-o"  @click="handleDel(scope.$index, scope.row)" title="删除"></i>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -49,8 +49,6 @@
 		<!--编辑界面-->
 		<el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false">
 			<el-form :model="editForm" label-width="120px" :rules="addFormRules" ref="editForm">
-				<el-form-item label="资源层级" >
-				</el-form-item>
 			 	<el-form-item label="资源代码" prop="resourceCode">
 			 	 <el-input type="text" placeholder="资源名称 " v-model="editForm.resourceCode" > </el-input>
 				</el-form-item>
@@ -103,14 +101,11 @@
 				pager:this.global_.pager,
 				pagerSizes:this.global_.pagerSizes,
 				listLoading: false,
-				sels: [],//列表选中列
 				editFormVisible: false,//编辑界面是否显示
 				editLoading: false,
 				//编辑界面数据
 				editForm: {
 					id: 0,
-					level:'',
-					parentId:'',
 					resourceCode:'',
 					resourceName:''
 				},
@@ -168,6 +163,11 @@
 				},
 			//获取资源列表
 			getSystemResource() {
+				if(this.filters.searchParentId!=undefined){
+					 if(this.filters.searchParentId.length>1){
+					 	this.filters.searchParentId.splice(0,1)
+					 }
+				 }
 				let para = {
 					likeResourceCode: this.filters.resourceCode,
 					likeResourceName: this.filters.resourceName,
@@ -211,7 +211,9 @@
 						    method: 'post',
 						    url:'/system/systemresource/get/'+row.id,
 						}).then((res)=>{
-							this.editForm = Object.assign({},res);
+							this.editForm.id=res.id
+							this.editForm.resourceCode= res.resourceCode;
+							this.editForm.resourceName=res.resourceName
 				});
 			},
 			//显示新增界面
@@ -224,10 +226,10 @@
 				this.$refs.editForm.validate((valid) => {
 					if (valid) {
 						this.$confirm('确认提交吗？', '提示', {}).then(() => {
-							this.editLoading = true;
-							console.log(this.editForm)
+							this.editLoading = true; 
 							let para = Object.assign({}, this.editForm);
 							let id=para.id;
+							delete para['id'];
 							this.$axios({
 							    method: 'post',
 							    url:'/system/systemresource/update/'+id,
@@ -253,11 +255,20 @@
 					if (valid) {
 						this.$confirm('确认提交吗？', '提示', {}).then(() => {
 							this.addLoading = true;
-							let para = Object.assign({}, this.addForm);
+							if(this.addForm.parentId!=undefined){
+								if(this.addForm.parentId.length>1){
+									this.addForm.parentId.splice(0,1)
+								}
+							}
+							let obj={
+								parentId:this.addForm.parentId[0],
+								resourceCode:this.addForm.resourceCode,
+								resourceName:this.addForm.resourceName
+							}
 								this.$axios({
 							    method: 'post',
 							    url:'/system/systemresource/add',
-							    data:para,
+							    data:obj,
 								}).then((res)=>{
 								this.systemresource = res.rows;
 								this.addLoading = false;

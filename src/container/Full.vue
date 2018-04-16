@@ -50,6 +50,23 @@
 
 <style lang="scss">
  @import '~scss_color';
+table {
+	.fa{
+		cursor: pointer;
+    font-size: 1.125rem;
+    margin-right: 5px;
+	}
+}
+ .text-center{
+ 	text-align: center;
+ }
+.el-submenu i[class^="fa"]{
+	 vertical-align: middle;
+	margin-right: 5px;
+	width: 24px;
+	text-align: center;
+	font-size: 18px;
+ }
  .el-container .el-menu-item.is-active{
 	color:$color-primary;
 }
@@ -57,9 +74,13 @@
 	background-color:$color-primary;
 	border-color:$color-primary;
 }
- .m120{
- 	max-width:120px;
- 	max-height: 120px;
+ .m40{
+ 	max-width:40px;
+ 	max-height: 40px;
+ 	cursor: pointer;
+ }
+ .mb10{
+ 	margin-bottom:10px;
  }
 .toolbar {
     background: #f2f2f2;
@@ -98,7 +119,7 @@
 	    overflow: hidden;
 	    background-color: #eef1f6;
 	    text-align: left;
-	    padding:4px 0
+	    padding:6px 0
 	}
 	td{
 		padding:5px 0

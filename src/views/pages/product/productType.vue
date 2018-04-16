@@ -2,9 +2,9 @@
 	<div>
 		<!--搜索工具条-->
 		<el-col :span="24" class="toolbar" >
-			<el-form :inline="true" :model="filters">
+			<el-form :inline="true" :model="filters" @keyup.enter.native="getProductTypes">
   				<el-form-item>
-					<el-input v-model="filters.likeTypeName" placeholder="名称"></el-input>
+					<el-input v-model.trim="filters.likeTypeName" placeholder="名称"></el-input>
 				</el-form-item>
 				<el-form-item>
 					<el-button type="success" v-on:click="getProductTypes">查询</el-button>
@@ -20,8 +20,8 @@
 			</el-table-column>
 				<el-table-column label="操作" width="150">
 				<template slot-scope="scope">
-					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-					<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+						<i class="fa fa-edit"  @click="handleEdit(scope.$index, scope.row)" title="编辑"></i>
+		      	<i class="fa fa-trash-o"  @click="handleDel(scope.$index, scope.row)" title="删除"></i>
 				</template>
 			</el-table-column>
 		</el-table>

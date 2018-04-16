@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
      <meta name="description" content="dxracer,迪瑞克斯,电竞坐椅,LPL赞助商">
      <meta name="keywords" content="dxracer,迪瑞克斯,电竞坐椅,LPL赞助商">
+    <script type="text/javascript" src="//cdn-hangzhou.goeasy.io/goeasy.js"></script>
+    <script>
+    	var goEasy = new GoEasy({
+					appkey: "BS-ee36be23c792410cac6501631c71fef9"
+         });
+         goEasy.subscribe({
+             channel: "51682ae35e8871b141371c1a02df4541894300fe26a35509",
+             onMessage: function (message) {
+   						alert("Channel:" + message.channel + " content:" + message.content);
+             }
+         });
+
+    </script>
     <title>DMS</title>
   </head>
   <body style="margin:0">

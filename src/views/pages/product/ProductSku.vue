@@ -2,23 +2,23 @@
 	<div>
 		<!--搜索工具条-->
 		<el-col :span="24" class="toolbar" >
-			<el-form :inline="true" :model="filters">
+			<el-form :inline="true" :model="filters" @keyup.enter.native="getProductSkus">
 				<el-form-item>
-					<el-input v-model="filters.Fcno" placeholder="FCNO"></el-input>
+					<el-input v-model.trim="filters.Fcno" placeholder="FCNO"  ></el-input>
   				</el-form-item>
   				<el-form-item>
-					<el-input v-model="filters.ItemNo" placeholder="ITEMNO"></el-input>
+					<el-input v-model.trim="filters.ItemNo" placeholder="ITEMNO"></el-input>
 				</el-form-item>
 					<el-form-item>
-					<el-input v-model="filters.Model" placeholder="MODEL"></el-input>
+					<el-input v-model.trim="filters.Model" placeholder="MODEL"></el-input>
 				</el-form-item>
 				<el-form-item>
-					<el-input v-model="filters.SkuName" placeholder="产品名称"></el-input>
+					<el-input v-model.trim="filters.SkuName" placeholder="产品名称"></el-input>
 				</el-form-item>
 				<el-form-item>
-					<el-select v-model="filters.Status" multiple collapse-tags  placeholder="请选择产品状态">
+				<el-select v-model="filters.Status" multiple collapse-tags  placeholder="请选择产品状态">
 			           <el-option v-for="item in statusOptions" :key="item.key" :label="item.value":value="item.key"></el-option>
-					 </el-select>
+				</el-select>
 				</el-form-item>
 				<el-form-item>
 					<el-date-picker v-model="filters.searchCreateTime" type="daterange"align="right" unlink-panels
@@ -33,10 +33,10 @@
 			<el-button type="success" @click="handleAdd">新增</el-button>
 		</el-col>
 		<!--列表-->
-		<el-table :data="users" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" @sort-change="sortChange">
-			<el-table-column prop="mainImgUrl"  label="主图" min-width="120" sortable="custom" >
+		<el-table :data="skus" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" @sort-change="sortChange">
+			<el-table-column prop="mainImgUrl"  label="主图" min-width="70" >
 				<template slot-scope="scope">
-					<img    v-bind:src="scope.row.mainImgUrl | imgfilter" class="m120">
+					<img    v-bind:src="scope.row.mainImgUrl | imgfilter" class="m40" @click="enlarge(scope.row.mainImgUrl)">
 				</template>
 			</el-table-column>
 				<el-table-column prop="model"  label="MODEL" min-width="120" sortable="custom"></el-table-column>
@@ -47,10 +47,7 @@
 			<el-table-column prop="productType.typeName" label="类别" width="80" sortable="custom"></el-table-column>
 			<el-table-column prop="listPrice" label="官方价" width="100" sortable="custom"></el-table-column>
 			<el-table-column prop="listPrice" label="重量(KG)" width="120" sortable="custom"></el-table-column>
-			<el-table-column prop="status" label="状态" width="80" sortable="custom">
-				<template slot-scope="scope">
-					{{scope.row.status | statusFilter  }}
-				</template>
+			<el-table-column prop="status" label="状态" width="80" sortable="custom" :formatter="formatStatus">
 			</el-table-column>
 			<el-table-column prop="packageLength" label="长宽高(CM)"width="120" sortable="custom">
 					<template slot-scope="scope">
@@ -61,17 +58,11 @@
             <el-table-column  label="创建时间" width="180" prop="createTime"></el-table-column>
 			<el-table-column label="操作"width="100" >
 		      <template slot-scope="scope">
-		       	<icon name="edit" label="edit" @click="handleEdit(scope.$index, scope.row)"></icon>
-		        <!--<el-popover trigger="hover" placement="bottom"  ref="popovercz">
-		        	<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-							<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)" v-if="scope.row.status === 'created'">删除</el-button>
-							<el-button size="small" @click="handleClosed(scope.$index, scope.row)">停用</el-button>
-							<el-button size="small" type='warning' @click="handleUnPublished(scope.$index,scope.row)" v-if="scope.row.status === 'published'">下架</el-button>
-						    <el-button size="small" type='success' @click="handlePublished(scope.$index,scope.row)" v-else>上架</el-button>
-		          <div slot="reference" class="name-wrapper">
-		          	 <i class="el-icon-info" ></i>
-		          </div>
-		        </el-popover>-->
+		      	<i class="fa fa-edit"  @click="handleEdit(scope.$index, scope.row)" title="编辑"></i>
+		      	<i class="fa fa-trash-o"  @click="handleDel(scope.$index, scope.row)" title="删除"></i>
+		      	<i class="fa fa-minus-circle"  @click="handleClosed(scope.$index, scope.row)" title="停用"></i>
+		      	<i class="fa fa-arrow-circle-o-down"  @click="handleUnPublished(scope.$index, scope.row)" title="下架" v-if="scope.row.status === 'published'"></i>
+		      	<i class="fa fa-arrow-circle-o-up"  @click="handlePublished(scope.$index, scope.row)" title="上架"  v-else></i>
 		      </template>
 		    </el-table-column>
 		</el-table>
@@ -85,18 +76,10 @@
 		<el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false" width="50%">
 			<el-form :model="editForm" label-width="120px" :rules="addFormRules" ref="editForm">
 				<el-form-item label="产品主图 " prop="mainImgUrl">
-		      <el-upload class="upload-demo" ref="upload"
-					       action="#"
-					     :file-list="fileList"
-					     show-file-list
-					     :limit="1"
-                      :before-upload="beforeUpload"
-					  :on-preview="handlePreview"
-					   :on-remove="handleRemove"
-					   list-type="picture"
-					  v-model="editForm.mainImgUrl">
+		      <el-upload class="upload-demo" ref="upload" action="#" :file-list="fileList"  show-file-list    :limit="1"  :before-upload="beforeUpload"
+					  :on-preview="handlePreview":on-remove="handleRemove"  list-type="picture"  v-model="editForm.mainImgUrl">
 					  <el-button size="small" type="primary" >点击上传</el-button>
-					  <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+					  <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过2MB</div>
 					</el-upload>
 				</el-form-item>	
 					<el-form-item label="MODEL" prop="model">
@@ -140,18 +123,10 @@
 		<el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false">
 			<el-form :model="addForm" label-width="120px" :rules="addFormRules" ref="addForm">
 				<el-form-item label="产品主图 " prop="mainImgUrl">
-					<el-upload ref="upload"
-					     action="#"
-					     :file-list="fileList"
-					     show-file-list
-					     :limit="1"
-                      :before-upload="beforeUpload"
-					  :on-preview="handlePreview"
-					  :on-remove="handleRemove"
-					    list-type="picture"
-					  v-model="addForm.mainImgUrl"">
+					<el-upload ref="upload" action="#" :file-list="fileList"     show-file-list :limit="1" :before-upload="beforeUpload":on-preview="handlePreview"
+					  :on-remove="handleRemove" list-type="picture"  v-model="addForm.mainImgUrl">
   			<el-button size="small" type="primary">点击上传</el-button>
- 			 <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div></el-upload>
+ 			 <div slot="tip" class="el-upload__tip">只能上传单张jpg/png文件，且不超过2MB</div></el-upload>
 				</el-form-item>	
 					<el-form-item label="MODEL" prop="model">
 						<el-input type="text" placeholder="MODEL" v-model="addForm.model" > </el-input>
@@ -189,26 +164,14 @@
 				<el-button type="primary" @click.native="addSubmit" :loading="addLoading">提交</el-button>
 			</div>
 		</el-dialog>
-
+		<el-dialog title="商品图片" :visible.sync="enlargeVisible" :close-on-click-modal="false" center >
+			<div class="text-center"><img :src="enlargeImg | imgfilter"></div>
+		</el-dialog></div>
 	</div>
 </template>
 <script>
 	export default {
-		filters: {
-			
-		 		//状态显示转换
-			statusFilter(status) {
-			  const statusMap = {
-			  	"created":'已创建',
-			    'unpublish':'未上架',
-			    'published':'已上架',
-			    'closed': '已停用'
-			  }
-			  return statusMap[status]
-			},
-		 },
 		data() {
-			
 			var validateUser = (rule, value, callback) => {
 				if(value===''){
 		           callback(new Error('请输入用户名'));
@@ -238,6 +201,7 @@
 				fileList:[],
 				dialogImageUrl:'',
 				dialogVisible:false,
+				enlargeVisible:false,
 				//搜索
 				filters:{
 					Fcno: '',
@@ -250,7 +214,7 @@
 				groupOptions:[],
 				companyOptions:[],
 				roleOptions:[],
-				users: [],
+				skus: [],
 				total: 0,
 				pager:this.global_.pager,
 				pagerSizes:this.global_.pagerSizes,
@@ -259,8 +223,8 @@
 				editFormVisible: false,//编辑界面是否显示
 				editLoading: false,
 				//编辑界面数据
-				editForm: {
-				},
+				editForm: {},
+				enlargeImg:'',
 				addFormVisible: false,//新增界面是否显示
 				addLoading: false,
 				//新增-编辑界面验证
@@ -299,6 +263,19 @@
 			}
 		},
 		methods: {
+			//状态显示转换
+			formatStatus: function (row, column) {
+				for(var i = 0 ;i < this.statusOptions.length;i++){
+					if(this.statusOptions[i].key == row.status){
+						return this.statusOptions[i].value;
+					}
+				}
+			},
+			//放大图片
+			enlarge(val){
+				this.enlargeVisible = true;
+				this.enlargeImg=val
+			},
 			getStatus(){
 					this.$axios({
 					    method: 'post',
@@ -382,8 +359,13 @@
 					    params:this.pager,
 					    data:para,
 					}).then((res)=>{
+						
 						this.total = res.totalRows;
-						this.users = res.rows;
+						if(res.totalRows>0){
+							this.skus = res.rows;
+						}else{
+							this.skus=[]
+						}
 						this.listLoading = false;
 					});
 			},
@@ -506,7 +488,7 @@
 							    url:'/product/productsku/update/'+id,
 							    data:para,
 							}).then((res)=>{
-								this.users = res.rows;
+								this.skus = res.rows;
 								this.editLoading = false;
 								this.$message({
 										message: '提交成功',
@@ -522,7 +504,8 @@
 			},
 			//显示新增界面
 			handleAdd () {
-				this.filelist=[];
+				this.fileList=[];
+				this.addForm.mainImgUrl='';
 				this.addFormVisible = true;
 			},
 			//新增
@@ -537,16 +520,13 @@
 							    url:'/product/productsku/add',
 							    data:para,
 								}).then((res)=>{
-								this.users = res.rows;
+								this.skus = res.rows;
 								this.listLoading = false;
-								this.$message({
-										message: '提交成功',
-										type: 'success'
-									});
+								this.$message({message: '提交成功',type: 'success'});
 								this.$refs['addForm'].resetFields();
-								this.$refs['filelist']=[];
+								this.$refs['fileList']=[];
 								this.addFormVisible = false;
-									this.getProductSkus();
+								this.getProductSkus();
 							});
 						});
 					}

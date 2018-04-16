@@ -33,7 +33,51 @@ let routes = [
 					component: resolve => require(['@/views/pages/product/ProductSku.vue'], resolve)
 				},
 				]
-		},
+	},
+	 {
+			path: '/partner',
+			name:'客户管理',
+			iconCls: 'fa fa-user',//图标样式class
+			redirect: '/partner/partnerinfo',
+			component:  resolve => require(['@/container/Full.vue'], resolve),
+			children: [
+				{
+					name:'客户列表',
+					path: '/partner/partnerinfo',
+					component: resolve => require(['@/views/pages/partner/partnerinfo.vue'], resolve)
+				},
+				{
+					name:'发票信息',
+					path: '/partner/partnerinvoice',
+					component: resolve => require(['@/views/pages/partner/PartnerInvoice.vue'], resolve)
+				},
+				{
+					name:'付款账号',
+					path: '/partner/partnerbank',
+					component: resolve => require(['@/views/pages/partner/PartnerBank.vue'], resolve)
+				},
+				{
+					name:'资金余额',
+					path: '/partner/partneraccount',
+					component: resolve => require(['@/views/pages/partner/PartnerAccount.vue'], resolve)
+				},
+					{
+					name:'资金流水',
+					path: '/partner/partneraccountlog',
+					component: resolve => require(['@/views/pages/partner/PartnerAccountLog.vue'], resolve)
+				},
+				{
+					name:'充值列表',
+					path: '/partner/partnerrecharge',
+					component: resolve => require(['@/views/pages/partner/PartnerRecharge.vue'], resolve)
+				},
+					{
+					name:'销价列表',
+					path: '/partner/partnersku',
+					component: resolve => require(['@/views/pages/partner/PartnerSku.vue'], resolve)
+				},
+				]
+	},
     {
 			path: '/system',
 			name:'系统管理',

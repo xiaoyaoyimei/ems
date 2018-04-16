@@ -2,7 +2,7 @@
 	<div>
 		<!--搜索工具条-->
 		<el-col :span="24" class="toolbar">
-			<el-form :inline="true" :model="filters">
+			<el-form :inline="true" :model="filters" @keyup.enter.native="getGroupBase">
 				 <el-col :md='8' :lg="3">
 				<el-form-item >
 					<el-input v-model="filters.groupCode" placeholder="集团编号"></el-input>
@@ -59,18 +59,15 @@
 			</el-table-column>
 			<el-table-column prop="expireTime" label="到期日期" width="180" sortable="custom">
 			</el-table-column>
-			<el-table-column prop="useStatus"  label="状态" min-width="100" sortable="custom">
-				<template slot-scope="scope">
-			{{scope.row.useStatus | statusFilter}}
-				</template>
+			<el-table-column prop="useStatus"  label="状态" min-width="100" sortable="custom" :formatter="formatStatus">
 			</el-table-column>
 			<el-table-column label="操作" width="350">
 				<template slot-scope="scope">
-					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-				   <el-button   size="small" @click="handleQx(scope.$index,scope.row)">分配权限</el-button>
-					<el-button  type="danger" size="small" @click="handleDel(scope.$index, scope.row)" v-show="scope.row.useStatus=='newly'">删除</el-button>
-				   <el-button    size="small" type='warning' @click="handleAudit(scope.$index,scope.row)" v-if="scope.row.useStatus === 'normal'">停用</el-button>
-					<el-button   size="small" type='success' @click="handleAudit(scope.$index,scope.row)" v-else>启用</el-button>
+					<i class="fa fa-edit"  @click="handleEdit(scope.$index, scope.row)" title="编辑"></i>
+		      		<i class="fa fa-trash-o"  @click="handleDel(scope.$index, scope.row)" title="删除"  v-show="scope.row.useStatus=='newly'"></i>
+				  	<i class="fa fa-bookmark"  @click="handleQx(scope.$index,scope.row)" title="分配权限"></i>
+				  	<i class="fa fa-minus-circle"  @click="handleAudit(scope.$index,scope.row)"   v-if="scope.row.useStatus === 'normal'" title="停用"></i>
+				  	<i class="fa fa-repeat"  @click="handleAudit(scope.$index,scope.row)"   v-else title="启用"></i>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -120,7 +117,7 @@
 			</el-tree>
 				<div slot="footer" class="dialog-footer">
 				<el-button @click.native="treeVisible = false">取消</el-button>
-				<el-button type="success" @click.native="getCheckedNodes" >提交</el-button>
+				<el-button type="success" @click.native="getCheckedKeys" >提交</el-button>
 			</div>
 		</el-dialog>
 
@@ -185,25 +182,23 @@
 
 			}
 		},
-		 filters: {
-		 		//状态显示转换
-			statusFilter(useStatus) {
-			  const statusMap = {
-			  	"newly":'已创建',
-			    'normal':'已启用',
-			    'closed': '已停用'
-			  }
-			  return statusMap[useStatus]
-			},
-		 },
 	watch: {
 	      filterText(val) {
 	        this.$refs.tree.filter(val);
 	      }
 	    },
 		methods: {
+			
+			//状态显示转换
+			formatStatus: function (row, column) {
+				for(var i = 0 ;i < this.useStatus.length;i++){
+					if(this.useStatus[i].key == row.status){
+						return this.useStatus[i].value;
+					}
+				}
+			},
 			//权限树过滤
-			   filterNode(value, data) {
+			 filterNode(value, data) {
 		        if (!value) return true;
 		        return data.label.indexOf(value) !== -1;
 		      },
@@ -430,25 +425,27 @@
 			selsChange (sels) {
 				this.sels = sels;
 			}, 
-	     	getCheckedNodes(){
-		      	var resource=this.$refs.tree.getCheckedNodes(),
-		      	resourceIds=[];
-		      	for (let i=0;i<resource.length;i++){
-		      		resourceIds[i]=resource[i].id
-		      	}
+	     	getCheckedKeys(){
+	     	    var resource=this.$refs.tree.getCheckedKeys();
+	     	    //半选中（在）
+		      	var resourcehalf=this.$refs.tree.getHalfCheckedKeys();
+		    	var resourceIds=resource.concat(resourcehalf);
 	     		this.$axios({
 							    method: 'post',
 							    url:'/group/groupbase/group/update/'+this.choosegroupId,
-							    data:resourceIds
+							    data:resource
 								}).then((res)=>{
 								this.$message({
 										message: '分配权限成功',
 										type: 'success'
 								});
 								this.treeVisible = false;
-								
+								for(var i=0;i<this.$refs.tree.store._getAllNodes().length;i++){
+		           					this.$refs.tree.store._getAllNodes()[i].expanded=false;
+		        				}
 				});
 				this.$refs.table.clearSelection();
+				
 	     	},
 		},
 		mounted() {

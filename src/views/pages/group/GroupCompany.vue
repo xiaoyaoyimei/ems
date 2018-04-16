@@ -2,7 +2,7 @@
 	<div>
 		<!--搜索工具条-->
 		<el-col :span="24" class="toolbar">
-			<el-form :inline="true" :model="filters">
+			<el-form :inline="true" :model="filters" @keyup.enter.native="getCompany"> 
 				<el-form-item>
 					<el-input v-model="filters.companyCode" placeholder="公司编号"></el-input>
 				</el-form-item>
@@ -49,8 +49,8 @@
 			</el-table-column>
 				<el-table-column label="操作" width="150">
 				<template slot-scope="scope">
-					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-					<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+					<i class="fa fa-edit"  @click="handleEdit(scope.$index, scope.row)" title="编辑"></i>
+		      		<i class="fa fa-trash-o"  @click="handleDel(scope.$index, scope.row)" title="删除"></i>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -72,11 +72,7 @@
 				</el-form-item>
 			 <el-form-item label="所属集团" prop="groupId">
 			 	  <el-select v-model="editForm.groupId" placeholder="请选择">
-				    <el-option
-				      v-for="item in groupOptions"
-				      :key="item.id"
-				      :label="item.groupName"
-				      :value="item.id">
+				    <el-option v-for="item in groupOptions"   :key="item.id"     :label="item.groupName" :value="item.id">
 				    </el-option>
   				</el-select>
 				</el-form-item>

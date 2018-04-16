@@ -2,14 +2,14 @@
 	<div>
 		<!--搜索工具条-->
 		<el-col :span="24" class="toolbar" >
-			<el-form :inline="true" :model="filters">
+			<el-form :inline="true" :model="filters" @keyup.enter.native="getRoles">
 				<el-form-item>
 					 <el-select v-model="filters.groupId"  collapse-tags  placeholder="请选择" multiple>
 			           <el-option v-for="item in groupOptions" :key="item.id" :label="item.groupName":value="item.id"></el-option>
 					 </el-select>
   				</el-form-item>
   				<el-form-item>
-					<el-input v-model="filters.roleName" placeholder="公司名称"></el-input>
+					<el-input v-model.trim="filters.roleName" placeholder="公司名称"></el-input>
 				</el-form-item>
 				<el-form-item>
 					<el-button type="success" v-on:click="getRoles">查询</el-button>
@@ -21,17 +21,16 @@
 		</el-col>
 		<!--列表-->
 		<el-table :data="roles" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" @sort-change="sortChange">
-			<el-table-column type="selection" width="55">
-				</el-table-column>
+			<el-table-column type="selection" width="55"></el-table-column>
 				<el-table-column prop="groupId" label="所属集团" width="180" sortable="custom"  :formatter="formatGroupId" >
 			</el-table-column>
-			<el-table-column prop="roleName" label="角色名称" min-width="180" sortable="custom">
-			</el-table-column>
-				<el-table-column label="操作" width="150">
-				<template slot-scope="scope">
-					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-					<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
-				</template>
+			<el-table-column prop="roleName" label="角色名称" min-width="180" sortable="custom"></el-table-column>
+			<el-table-column label="操作" width="150">
+					<template slot-scope="scope">
+						<i class="fa fa-bookmark"  @click="handleQx(scope.$index,scope.row)" title="分配权限"></i>
+						<i class="fa fa-edit"  @click="handleEdit(scope.$index, scope.row)" title="编辑"></i>
+			      		<i class="fa fa-trash-o"  @click="handleDel(scope.$index, scope.row)" title="删除"></i>
+					</template>
 			</el-table-column>
 		</el-table>
 
@@ -84,7 +83,15 @@
 				<el-button type="success" @click.native="addSubmit" :loading="addLoading">提交</el-button>
 			</div>
 		</el-dialog>
-
+		<!--分配权限-->
+		<el-dialog title="分配权限" :visible.sync="treeVisible" :close-on-click-modal="false" :lock-scroll="true">
+			<el-input placeholder="输入关键字进行过滤" v-model="filterText" class="mb10"></el-input>
+			<el-tree ref="tree"  :data="trees" show-checkbox    node-key="id"  :filter-node-method="filterNode"  :props="defaultProps" v-loading="loading"></el-tree>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click.native="treeVisible = false">取消</el-button>
+				<el-button type="success" @click.native="getCheckedKeys" >提交</el-button>
+			</div>
+		</el-dialog>
 	</div>
 </template>
 <script>
@@ -97,8 +104,17 @@
 					companyName:'',
 					statusEnum:[],
 				},
+				defaultProps: {
+		          children: 'children',
+		          label: 'label'
+		        },
+		        loading: true,
+				treeVisible:false,
+				filterText:'',
+				trees:[],
 				groupOptions:[],
 				roles: [],
+				chooseroleId:'',
 				total: 0,
 				pager:this.global_.pager,
 				pagerSizes:this.global_.pagerSizes,
@@ -130,6 +146,57 @@
 			}
 		},
 		methods: {
+			filterNode(value, data) {
+		        if (!value) return true;
+		        return data.label.indexOf(value) !== -1;
+		      },
+			handleQx(index, row){
+				this.loading=false
+				    var data=[];
+				this.chooseroleId=row.id;
+					this.treeVisible=true;
+					this.$axios({
+					    method: 'post',
+					    url:'/system/systemrole/edit/resource/'+row.id,
+					}).then((res)=>{
+						this.trees = res;
+						  for (let i=0;i<res.length;i++){
+							  	if(res[i].checked=="true"){
+							  			data.push(res[i].id);
+							  	}
+						  	   for(let j=0;j < res[i].children.length;j++){
+						  	   	    if(res[i].children[j].checked=="true"){
+						  	   	    	data.push(res[i].children[j].id);
+						  	   	    }
+						  	   	    for(let n=0;n<res[i].children[j].children.length;n++){
+							  	   	    if(res[i].children[j].children[n].checked=="true"){
+							  	   	    	data.push(res[i].children[j].children[n].id);
+							  	   	    }
+						  	   	    }
+						  	   }
+						  }
+		                        this.$refs.tree.setCheckedKeys(data);
+					});
+				},
+			getCheckedKeys(){
+		      	var resourceIds=this.$refs.tree.getCheckedKeys();
+	     		this.$axios({
+							    method: 'post',
+							    url:'/system/systemrole/save/resource/'+this.chooseroleId,
+							    data:resourceIds
+								}).then((res)=>{
+								this.$message({
+										message: '分配权限成功',
+										type: 'success'
+								});
+								this.treeVisible = false;
+								//收缩tree
+								for(var i=0;i<this.$refs.tree.store._getAllNodes().length;i++){
+		         	  				this.$refs.tree.store._getAllNodes()[i].expanded=false;
+		        					}
+				});
+			
+			   },
 			formatGroupId(row,column){
 				for(var i = 0 ;i < this.groupOptions.length;i++){
 					if(this.groupOptions[i].id == row.groupId){

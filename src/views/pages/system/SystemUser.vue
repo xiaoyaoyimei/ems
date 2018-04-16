@@ -2,22 +2,19 @@
 	<div>
 		<!--搜索工具条-->
 		<el-col :span="24" class="toolbar" >
-			<el-form :inline="true" :model="filters">
+			<el-form :inline="true" :model="filters" @keyup.enter.native="getUsers">
 				<el-form-item>
 					 <el-select v-model="filters.groupId" multiple collapse-tags  placeholder="请选择集团">
 			           <el-option v-for="item in groupOptions" :key="item.id" :label="item.groupName":value="item.id"></el-option>
 					 </el-select>
   				</el-form-item>
   				<el-form-item>
-					<el-input v-model="filters.realName" placeholder="真实姓名"></el-input>
+					<el-input v-model.trim="filters.realName" placeholder="真实姓名"></el-input>
 				</el-form-item>
 					<el-form-item>
-					<el-input v-model="filters.userName" placeholder="用户名"></el-input>
+					<el-input v-model.trim="filters.userName" placeholder="用户名"></el-input>
 				</el-form-item>
 						<el-form-item>
-					 <!--<el-select v-model="filters.userStatus" multiple collapse-tags  placeholder="请选择用户状态">
-			           <el-option v-for="item in userStatus" :key="item.id" :label="item.groupName":value="item.id"></el-option>
-					 </el-select>-->
 				</el-form-item>
 				<el-form-item>
 					<el-button type="success" v-on:click="getUsers">查询</el-button>
@@ -51,35 +48,23 @@
 			</el-table-column>
 			<el-table-column prop="realName" label="真实姓名" min-width="100" sortable="custom">
 			</el-table-column>
-			<el-table-column prop="mobilePhone" label="手机号 " min-width="100" sortable="custom">
-				
-			</el-table-column>
-				<el-table-column prop="userStatus" label="用户状态 " min-width="100" sortable="custom">
+			<el-table-column prop="mobilePhone" label="手机号 " min-width="100" sortable="custom"></el-table-column>
+				<el-table-column prop="userStatus" label="用户状态 " min-width="80" sortable="custom">
 						<template slot-scope="scope">
-						<span v-for="(item,index) in scope.row.userStatus">
-						<span v-if="item=='Y'">正常</span><span v-else>停用</span>
-						</span>
+							<span v-for="(item,index) in scope.row.userStatus">
+									<span v-if="item=='Y'">正常</span><span v-else>停用</span>
+							</span>
 					</template>
 			</el-table-column>
 			<el-table-column prop="createTime" label="创建时间" min-width="180" sortable="custom">
 			</el-table-column>
-			
-					<el-table-column label="操作"width="100" >
+					<el-table-column label="操作"width="120" >
 						<template slot-scope="scope">
-						<i class="el-icon-edit-outline" @click="handleEdit(scope.$index, scope.row)" style="margin-right: 10px;cursor: pointer;" alt="编辑"></i>
-						<i class="el-icon-delete" @click="handleDel(scope.$index, scope.row)" style="margin-right: 10px;cursor: pointer;" alt="删除"></i>
+						  <i class="fa fa-edit"  @click="handleEdit(scope.$index, scope.row)" title="编辑"></i>
+			    			<i class="fa fa-trash-o"  @click="handleDel(scope.$index, scope.row)" title="删除"></i>
+						<i class="fa fa-unlock" @click="handleUnlock(scope.$index, scope.row)"  title="解锁"></i>
+						<i class="fa fa-wrench" @click="handleResetpass(scope.$index, scope.row)"  title="重置密码"></i>
 						</template>
-		      <!--<template slot-scope="scope">
-		        <el-popover trigger="click" placement="bottom"  ref="popovercz">
-		        	<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-					<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
-					<el-button type="success" size="small" @click="handleUnlock(scope.$index, scope.row)">解锁</el-button>
-					<el-button size="small" @click="handleResetpass(scope.$index, scope.row)">重置密码</el-button>
-		          <div slot="reference" class="name-wrapper">
-		          	 <i class="el-icon-info" ></i>
-		          </div>
-		        </el-popover>
-		      </template>-->
 		    </el-table-column>
 		</el-table>
 
@@ -105,7 +90,7 @@
   					 </el-select>
 				</el-form-item>
 				<el-form-item label="角色名称 " prop="roleIds">
-						<el-select v-model="editForm.roleIds" placeholder="请选择"  multiple >
+					<el-select v-model="editForm.roleIds" placeholder="请选择"  multiple >
 				    	<el-option v-for="item in roleOptions" :key="item.id" :label="item.roleName" :value="item.id"></el-option>
   					</el-select>
 				</el-form-item>
@@ -114,6 +99,12 @@
 				</el-form-item>
 				<el-form-item label="手机号" prop="mobilePhone">
 					<el-input type="text" placeholder="手机号 " v-model.number="editForm.mobilePhone" > </el-input>
+				</el-form-item>
+				<el-form-item label="用户状态" prop="userStatus">
+					<template>
+						  <el-radio v-model="editForm.userStatus" label="Y">正常</el-radio>
+						  <el-radio v-model="editForm.userStatus" label="N">停用</el-radio>
+					</template>
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
@@ -195,6 +186,7 @@
 					companyName:'',
 					statusEnum:[],
 				},
+				radio:'',
 				groupOptions:[],
 				companyOptions:[],
 				roleOptions:[],
@@ -208,6 +200,7 @@
 				editLoading: false,
 				//编辑界面数据
 				editForm: {
+					userStatus:''
 				},
 				addFormVisible: false,//新增界面是否显示
 				addLoading: false,
@@ -233,7 +226,7 @@
 						 { min: 6, max: 20, message: '密码长度6到12位', trigger: 'blur' }
 					],
 					mobilePhone:[{type:'number',required: true, message: '请输入手机号', trigger: 'blur' }]
-				},
+					},
 					editFormRules: {
 					groupId: [
 						{ required: true, message: '请选择所属集团', trigger: 'blur,change' }
@@ -320,7 +313,7 @@
 				   	this.editForm.companyIds=[];
 				   	this.roleOptions =[];
 				   	this.addForm.roleIds=[],
-				   		this.editForm.roleIds=[];
+				   	this.editForm.roleIds=[];
 					this.$axios({
 					    method: 'post',
 					    url:'/group/groupcompany/list',
@@ -359,7 +352,7 @@
 							}).catch(() => {
 							});
 			},
-				handleUnlock(index, row){
+			handleUnlock(index, row){
 				this.$confirm('确认解锁该用户吗?', '提示', {
 					type: 'warning'
 				}).then(() => {
@@ -378,7 +371,7 @@
 							}).catch(() => {
 							});
 			},
-				handleResetpass(index, row){
+			handleResetpass(index, row){
 				this.$confirm('确认重置密码吗?', '提示', {
 					type: 'warning'
 				}).then(() => {
@@ -414,8 +407,8 @@
 						    	this.editForm.roleIds[i]=res.systemRoleList[i].id
 						    }
 						    this.editForm.realName=res.realName;
-						      this.editForm.mobilePhone=res.mobilePhone*1;
-						      this.editForm.userStatus=res.userStatus;
+						    this.editForm.mobilePhone=res.mobilePhone*1;
+						    this.editForm.userStatus=res.userStatus;
 				});
 			},
 			//编辑
