@@ -1,6 +1,6 @@
 let global_={
 		pager:{
-		 "currentPage": 1,
+		 "currentPage": 0,
 		  "pageSize":10,
 	      "sortName": "id",
 	      "sortType": "desc"

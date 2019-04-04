@@ -10,7 +10,15 @@ module.exports = {
     // Paths
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-    proxyTable: {},
+    proxyTable: { 
+    	'/web': {
+                target: 'http://10.0.0.24:8888/dxracer',
+                changeOrigin: true,
+                pathRewrite: {
+                    '^/web': '/web'
+                }
+            }
+    	},
 
     // Various Dev Server settings
     host: 'localhost', // can be overwritten by process.env.HOST

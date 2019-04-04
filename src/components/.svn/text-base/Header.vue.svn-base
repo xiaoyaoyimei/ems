@@ -63,7 +63,6 @@
 								  sessionStorage.removeItem('user');
 									_this.$router.push('/login');
 								})
-							}).catch(() => {
 							});
 			},
 			changecompanyId(data){
@@ -100,6 +99,7 @@
 
 <style scoped  lang="scss">
 @import '~scss_color';
+
 .header {
 	 		padding:0;
 			height: 60px;

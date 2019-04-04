@@ -1,4 +1,7 @@
-let routes = [
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+Vue.use(VueRouter)
+const routes =  [
     {
       path: '/',
       redirect: '/login',
@@ -120,6 +123,19 @@ let routes = [
 					}
 				]
 		},
+		{	path: '/announce',
+			name:'公告管理',
+			iconCls: 'fa fa-bullhorn',
+			redirect: '/announce/announceinfo',
+			component:resolve => require(['@/container/Full.vue'], resolve),
+			children: [
+					{
+						name:'公告列表',
+						path: '/announce/announceinfo',
+						component: resolve => require(['@/views/pages/announce/AnnounceInfo.vue'], resolve)
+					}
+				]
+		},
 		{
 	        path: '*',
 	        component:resolve => require(['@/container/Full.vue'], resolve),
@@ -133,4 +149,14 @@ let routes = [
 					]
     	},
   ]
-export default routes;
+const router = new VueRouter({
+    routes,
+   scrollBehavior (to, from, savedPosition) {
+		  if (savedPosition) {
+		    return savedPosition
+		  } else {
+		    return { x: 0, y: 0 }
+		  }
+		}
+});
+export default router;

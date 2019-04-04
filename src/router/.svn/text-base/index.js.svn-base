@@ -4,7 +4,7 @@ let routes = [
       redirect: '/login',
       hidden:true
     },
-      {
+    {
       path: '/login',
       name: '登录',
       component:  resolve => require(['@/views/Login.vue'], resolve),
@@ -13,17 +13,71 @@ let routes = [
     {
 			path: '/product',
 			name:'产品管理',
-			iconCls: 'el-icon-star-on',//图标样式class
+			iconCls: 'el-icon-goods',//图标样式class
 			redirect: '/product/productsku',
 			component:  resolve => require(['@/container/Full.vue'], resolve),
 			children: [
 				{
+					name:'类型列表',
+					path: '/product/producttype',
+					component: resolve => require(['@/views/pages/product/ProductType.vue'], resolve)
+				},
+				{
+					name:'系列列表',
+					path: '/product/productseries',
+					component: resolve => require(['@/views/pages/product/ProductSeries.vue'], resolve)
+				},
+				{
 					name:'产品列表',
 					path: '/product/productsku',
 					component: resolve => require(['@/views/pages/product/ProductSku.vue'], resolve)
-				}
+				},
 				]
-		},
+	},
+	 {
+			path: '/partner',
+			name:'客户管理',
+			iconCls: 'fa fa-user',//图标样式class
+			redirect: '/partner/partnerinfo',
+			component:  resolve => require(['@/container/Full.vue'], resolve),
+			children: [
+				{
+					name:'客户列表',
+					path: '/partner/partnerinfo',
+					component: resolve => require(['@/views/pages/partner/partnerinfo.vue'], resolve)
+				},
+				{
+					name:'发票信息',
+					path: '/partner/partnerinvoice',
+					component: resolve => require(['@/views/pages/partner/PartnerInvoice.vue'], resolve)
+				},
+				{
+					name:'付款账号',
+					path: '/partner/partnerbank',
+					component: resolve => require(['@/views/pages/partner/PartnerBank.vue'], resolve)
+				},
+				{
+					name:'资金余额',
+					path: '/partner/partneraccount',
+					component: resolve => require(['@/views/pages/partner/PartnerAccount.vue'], resolve)
+				},
+					{
+					name:'资金流水',
+					path: '/partner/partneraccountlog',
+					component: resolve => require(['@/views/pages/partner/PartnerAccountLog.vue'], resolve)
+				},
+				{
+					name:'充值列表',
+					path: '/partner/partnerrecharge',
+					component: resolve => require(['@/views/pages/partner/PartnerRecharge.vue'], resolve)
+				},
+					{
+					name:'销价列表',
+					path: '/partner/partnersku',
+					component: resolve => require(['@/views/pages/partner/PartnerSku.vue'], resolve)
+				},
+				]
+	},
     {
 			path: '/system',
 			name:'系统管理',
@@ -63,6 +117,19 @@ let routes = [
 						name:'公司信息',
 						path: '/group/company',
 						component: resolve => require(['@/views/pages/group/GroupCompany.vue'], resolve)
+					}
+				]
+		},
+		{	path: '/announce',
+			name:'公告管理',
+			iconCls: 'fa fa-bullhorn',
+			redirect: '/announce/announceinfo',
+			component:resolve => require(['@/container/Full.vue'], resolve),
+			children: [
+					{
+						name:'公告列表',
+						path: '/announce/announceinfo',
+						component: resolve => require(['@/views/pages/announce/AnnounceInfo.vue'], resolve)
 					}
 				]
 		},

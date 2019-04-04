@@ -3,9 +3,21 @@ svn:wc:ra_dav:version-url
 V 54
 /svn/b2c/!svn/ver/244/dms-html/src/views/pages/product
 END
+productType.vue
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/b2c/!svn/ver/301/dms-html/src/views/pages/product/productType.vue
+END
 ProductSku.vue
 K 25
 svn:wc:ra_dav:version-url
 V 69
-/svn/b2c/!svn/ver/251/dms-html/src/views/pages/product/ProductSku.vue
+/svn/b2c/!svn/ver/301/dms-html/src/views/pages/product/ProductSku.vue
+END
+productSeries.vue
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/b2c/!svn/ver/301/dms-html/src/views/pages/product/productSeries.vue
 END

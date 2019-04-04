@@ -49,7 +49,7 @@
     		},
 			methods:{
 					 ...mapActions([
-		      		'collapsed' // 映射 this.increment() 为 this.$store.dispatch('increment')
+		      		'collapsed' // 映射 this.collapsed() 为 this.$store.dispatch('collapsed')
 		    ]),
 			logout(){
 				var _this = this;

@@ -7,7 +7,8 @@
     <el-form-item prop="checkPass">
       <el-input type="password" v-model="ruleForm2.checkPass" auto-complete="off" placeholder="密码"></el-input>
     </el-form-item>
-    <el-checkbox v-model="checked" checked class="remember">记住密码</el-checkbox>
+ <!--   <el-checkbox v-model="checked" checked class="remember">记住密码</el-checkbox>-->
+   <button  class="remember" @click="testpay">测试支付</button>
     <el-form-item style="width:100%;">
       <el-button type="success" style="width:100%;" @click.native.prevent="handleSubmit2" :loading="logining">登录</el-button>
       <!--<el-button @click.native.prevent="handleReset2">重置</el-button>-->
@@ -38,6 +39,16 @@
       };
     },
     methods: {
+    	testpay(){
+    		        this.$axios({
+							    method: 'post',
+							    url:'/pay',
+							    params:{orderNo:'2018083117125045612'}
+							    //data:loginParams,
+								}).then(data => {
+									console.log(data)
+								});
+    	},
       handleReset2() {
         this.$refs.ruleForm2.resetFields();
       },
@@ -47,22 +58,22 @@
           if (valid) {
             this.logining = true;
             var loginParams = { userName: this.ruleForm2.account, password: this.ruleForm2.checkPass };
-            this.$router.push({ path: '/group/company' });
             this.$axios({
 							    method: 'post',
-							    url:'/system/user/login',
+							    url:'/login',
 							    data:loginParams,
 								}).then(data => {
+									console.log(data)
 	              this.logining = false;
 	              let { code, message } = data;
-		              if (code !== 200) {
+		              if (code !== "200") {
 		                this.$message({
 		                  message: message,
 		                  type: 'error'
 		                });
 		              } else {
-		                sessionStorage.setItem('message', JSON.stringify(message));
-		                this.$router.push({ path: '/group/company' });
+		            //    sessionStorage.setItem('message', JSON.stringify(message));
+		                this.$router.push({ path: '/partner/partnerinfo' });
 		              }
             });
           } else {

@@ -48,7 +48,6 @@
 		<el-table :data="groupbase"  ref="table" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" @sort-change="sortChange">
 			<el-table-column type="selection" width="55">
 			</el-table-column>
-				
 			<el-table-column prop="groupCode" label="集团编号" width="120" sortable="custom">
 			</el-table-column>
 			<el-table-column prop="groupName" label="集团名称" width="180" sortable="custom">

@@ -9,3 +9,9 @@ svn:wc:ra_dav:version-url
 V 52
 /svn/b2c/!svn/ver/251/dms-html/src/base/baseParam.js
 END
+basefilters.js
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/b2c/!svn/ver/286/dms-html/src/base/basefilters.js
+END

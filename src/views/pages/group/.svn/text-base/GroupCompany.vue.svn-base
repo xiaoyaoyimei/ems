@@ -2,7 +2,7 @@
 	<div>
 		<!--搜索工具条-->
 		<el-col :span="24" class="toolbar">
-			<el-form :inline="true" :model="filters">
+			<el-form :inline="true" :model="filters" @keyup.enter.native="getCompany"> 
 				<el-form-item>
 					<el-input v-model="filters.companyCode" placeholder="公司编号"></el-input>
 				</el-form-item>
@@ -25,20 +25,16 @@
       					range-separator="至"start-placeholder="创建开始日期" end-placeholder="创建结束日期" value-format="yyyy-MM-dd"></el-date-picker>
 				</el-form-item>
 				<el-form-item>
-					<el-button type="primary" v-on:click="getCompany">查询</el-button>
-					<el-button type="primary" @click="handleAdd">新增</el-button>
+					<el-button type="success" v-on:click="getCompany">查询</el-button>
 				</el-form-item>
 			</el-form>
+		</el-col>
+			<el-col  class="toolbar" >
+			<el-button type="success" @click="handleAdd">新增</el-button>
 		</el-col>
 		<!--列表-->
 		<el-table :data="companys" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" @sort-change="sortChange">
 			<el-table-column type="selection" width="55">
-			</el-table-column>
-					<el-table-column label="操作" width="150">
-				<template slot-scope="scope">
-					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-					<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
-				</template>
 			</el-table-column>
 			<el-table-column prop="companyCode" label="公司编号" width="120" sortable="custom"></el-table-column>
 			<el-table-column prop="companyName" label="公司名称" min-width="180" sortable="custom">
@@ -50,6 +46,12 @@
 			<el-table-column prop="shortName" label="公司简称" width="180" sortable="custom">
 			</el-table-column>
 			<el-table-column prop="status" label="状态" min-width="180" :formatter="formatStatus" sortable="custom">
+			</el-table-column>
+				<el-table-column label="操作" width="150">
+				<template slot-scope="scope">
+					<i class="fa fa-edit"  @click="handleEdit(scope.$index, scope.row)" title="编辑"></i>
+		      		<i class="fa fa-trash-o"  @click="handleDel(scope.$index, scope.row)" title="删除"></i>
+				</template>
 			</el-table-column>
 		</el-table>
 
@@ -70,11 +72,7 @@
 				</el-form-item>
 			 <el-form-item label="所属集团" prop="groupId">
 			 	  <el-select v-model="editForm.groupId" placeholder="请选择">
-				    <el-option
-				      v-for="item in groupOptions"
-				      :key="item.id"
-				      :label="item.groupName"
-				      :value="item.id">
+				    <el-option v-for="item in groupOptions"   :key="item.id"     :label="item.groupName" :value="item.id">
 				    </el-option>
   				</el-select>
 				</el-form-item>
@@ -84,7 +82,7 @@
 			</el-form>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click.native="editFormVisible = false">取消</el-button>
-				<el-button type="primary" @click.native="editSubmit" :loading="editLoading">提交</el-button>
+				<el-button type="success" @click.native="editSubmit" :loading="editLoading">提交</el-button>
 			</div>
 		</el-dialog>
 
@@ -113,7 +111,7 @@
 			</el-form>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click.native="addFormVisible = false">取消</el-button>
-				<el-button type="primary" @click.native="addSubmit" :loading="addLoading">提交</el-button>
+				<el-button type="success" @click.native="addSubmit" :loading="addLoading">提交</el-button>
 			</div>
 		</el-dialog>
 
@@ -228,6 +226,16 @@
 						this.listLoading = false;
 					});
 			},
+			//获取所属集团
+			getGroup(){
+					this.$axios({
+					    method: 'post',
+					    url:'/group/groupbase/list',
+					    data:{},
+					}).then((res)=>{
+						this.groupOptions = res;
+					});
+			},
 			//获取状态
 			getStatus(){
 					this.$axios({
@@ -336,6 +344,7 @@
 		},
 		mounted() {
 			this.getCompany();
+			this.getGroup();
 			this.getStatus();
 		}
 	}

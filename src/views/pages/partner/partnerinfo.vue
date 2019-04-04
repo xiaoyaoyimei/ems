@@ -4,7 +4,7 @@
 		<el-col :span="24" class="toolbar" >
 			<el-form :inline="true" :model="filters" @keyup.enter.native="getPartnerInfo">
   				<el-form-item>
-					<el-input v-model.trim="filters.likePartnerName" placeholder="客户名称"></el-input>
+					<el-input v-model.trim="filters.likePartnerName" placeholder="客户名称" name="likePartnerName"></el-input>
 				</el-form-item>
 				<el-form-item>
 					<el-input v-model.trim="filters.likeShopName" placeholder="店铺名称"></el-input>
@@ -24,7 +24,7 @@
 		</el-col>
 		<!--列表-->
 		<el-table :data="PartnerInfo" highlight-current-row v-loading="listLoading"  style="width: 100%;" @sort-change="sortChange">
-			<el-table-column prop="partnerName" label="客户名称" width="120" sortable="custom"></el-table-column>
+			<el-table-column prop="partner_name" label="客户名称" width="120" sortable="custom"></el-table-column>
 			<el-table-column prop="province" label="省份" width="100" sortable="custom"></el-table-column>
 			<el-table-column prop="city" label="城市" width="100" sortable="custom"></el-table-column>
 			<el-table-column prop="district" label="区县" width="100" sortable="custom"></el-table-column>
@@ -41,11 +41,22 @@
 					</template>-->
 			</el-table-column>
 			<el-table-column label="操作" width="150">
+			    <template slot-scope="scope">
+        <el-button
+          size="mini"
+          @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+        <el-button
+          size="mini"
+          type="danger"
+          @click="handleDel(scope.$index, scope.row)">删除</el-button>
+      </template>
+      </el-table-column>
+			<!--<el-table-column label="操作" width="150">
 				<template slot-scope="scope">
-			    <i class="fa fa-edit"  @click="handleEdit(scope.$index, scope.row)" title="编辑"></i>
-		      	<i class="fa fa-trash-o"  @click="handleDel(scope.$index, scope.row)" title="删除"></i>
+			    <i class="fa fa-edit"   @click="handleEdit(scope.$index, scope.row)" title="编辑"></i>
+		      	<i class="fa fa-trash-o"  @click="handleDel(scope.row)" title="删除"></i>
 				</template>
-			</el-table-column>
+			</el-table-column>-->
 		</el-table>
 
 		<!--分页工具条-->
@@ -203,12 +214,14 @@
 					    params:this.pager,
 					    data:para,
 					}).then((res)=>{
-						this.total = res.totalRows;
-						if(res.totalRows>0){
-						this.PartnerInfo = res.rows;
-						}else{
-							this.PartnerInfo =[]
-						}
+						this.PartnerInfo = res.datas;
+				
+//						this.total = res.totalRows;
+//						if(res.totalRows>0){
+//						this.PartnerInfo = res.rows;
+//						}else{
+//							this.PartnerInfo =[]
+//						}
 					});
 			},
 			//删除
@@ -237,7 +250,9 @@
 						    method: 'post',
 						    url:'/partner/partnerinfo/get/'+row.id,
 						}).then((res)=>{
-							this.editForm.partnerName = res.partnerName;
+							var res=res.rows[0];
+							this.editForm.partnerName = res.partner_name;
+							console.log(res.partner_name);
 							this.editForm.selectedOptionsAddr=[res.province, res.city,res.district];
 							this.editForm.addr = res.addr;
 							this.editForm.shopName = res.shopName;
@@ -292,16 +307,17 @@
 						this.$confirm('确认提交吗？', '提示', {}).then(() => {
 							this.listLoading = true;
 							let temp=this.addForm;
-							temp.province=this.addForm.selectedOptionsAddr[0];
-							temp.city=this.addForm.selectedOptionsAddr[1];
-							temp.district=this.addForm.selectedOptionsAddr[2];
-							delete temp['selectedOptionsAddr']
+//							temp.province=this.addForm.selectedOptionsAddr[0];
+//							temp.city=this.addForm.selectedOptionsAddr[1];
+//							temp.district=this.addForm.selectedOptionsAddr[2];
+//							delete temp['selectedOptionsAddr']
 							let para = Object.assign({}, temp);
 								this.$axios({
 							    method: 'post',
 							    url:'/partner/partnerinfo/add',
 							    data:para,
 								}).then((res)=>{
+									console.log(res)
 								this.roles = res.rows;
 								this.listLoading = false;
 								this.$message({
@@ -327,8 +343,8 @@
 		},
 		mounted() {
 			this.getPartnerInfo();
-			this.getAddr();
-			this.getStatus()
+			//this.getAddr();
+			//this.getStatus()
 		}
 	}
 </script>
